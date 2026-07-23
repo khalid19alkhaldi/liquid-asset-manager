@@ -14,16 +14,259 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      buildings: {
+        Row: {
+          annual_budget: number
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          type: Database["public"]["Enums"]["building_type"]
+          updated_at: string
+        }
+        Insert: {
+          annual_budget?: number
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          type: Database["public"]["Enums"]["building_type"]
+          updated_at?: string
+        }
+        Update: {
+          annual_budget?: number
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          type?: Database["public"]["Enums"]["building_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      facilities: {
+        Row: {
+          building_id: string
+          category: Database["public"]["Enums"]["facility_category"]
+          created_at: string
+          facility_type: string
+          id: string
+          name: string
+        }
+        Insert: {
+          building_id: string
+          category: Database["public"]["Enums"]["facility_category"]
+          created_at?: string
+          facility_type: string
+          id?: string
+          name: string
+        }
+        Update: {
+          building_id?: string
+          category?: Database["public"]["Enums"]["facility_category"]
+          created_at?: string
+          facility_type?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facilities_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_requests: {
+        Row: {
+          actual_cost: number | null
+          admin_notes: string | null
+          assigned_to: string | null
+          building_id: string
+          completed_at: string | null
+          created_at: string
+          description: string
+          estimated_cost: number | null
+          facility_id: string | null
+          id: string
+          priority: Database["public"]["Enums"]["priority_level"]
+          reported_by: string
+          status: Database["public"]["Enums"]["request_status"]
+          technician_notes: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          admin_notes?: string | null
+          assigned_to?: string | null
+          building_id: string
+          completed_at?: string | null
+          created_at?: string
+          description: string
+          estimated_cost?: number | null
+          facility_id?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["priority_level"]
+          reported_by: string
+          status?: Database["public"]["Enums"]["request_status"]
+          technician_notes?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_cost?: number | null
+          admin_notes?: string | null
+          assigned_to?: string | null
+          building_id?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          estimated_cost?: number | null
+          facility_id?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["priority_level"]
+          reported_by?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          technician_notes?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_requests_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_requests_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_catalog: {
+        Row: {
+          created_at: string
+          facility_type: string
+          id: string
+          service_name: string
+          standard_price: number
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string
+          facility_type: string
+          id?: string
+          service_name: string
+          standard_price: number
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string
+          facility_type?: string
+          id?: string
+          service_name?: string
+          standard_price?: number
+          unit?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          assigned_building_id: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_building_id?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_building_id?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_assigned_building_id_fkey"
+            columns: ["assigned_building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_building: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "facility_manager" | "technician"
+      building_type:
+        | "main_admin"
+        | "school"
+        | "residential"
+        | "warehouse"
+        | "branch_office"
+      facility_category: "interior" | "exterior"
+      priority_level: "low" | "medium" | "high" | "urgent"
+      request_status:
+        | "pending"
+        | "approved"
+        | "in_progress"
+        | "completed"
+        | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +393,24 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "facility_manager", "technician"],
+      building_type: [
+        "main_admin",
+        "school",
+        "residential",
+        "warehouse",
+        "branch_office",
+      ],
+      facility_category: ["interior", "exterior"],
+      priority_level: ["low", "medium", "high", "urgent"],
+      request_status: [
+        "pending",
+        "approved",
+        "in_progress",
+        "completed",
+        "rejected",
+      ],
+    },
   },
 } as const
