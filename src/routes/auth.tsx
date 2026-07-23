@@ -32,7 +32,12 @@ function AuthPage() {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) nav({ to: "/dashboard", replace: true });
     });
-    supabase.from("buildings").select("id, name").order("name").then(({ data }) => {
+    // Fetch buildings with error logging
+    supabase.from("buildings").select("id, name").order("name").then(({ data, error }) => {
+      if (error) {
+        console.error("Error fetching buildings:", error);
+        toast.error("خطأ في تحميل قائمة المباني");
+      }
       if (data) {
         setBuildings(data);
         if (data[0]) setBuildingId(data[0].id);
@@ -54,17 +59,29 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+
         const uid = data.user?.id;
         if (uid) {
-          await supabase.from("user_roles").insert({ user_id: uid, role });
-          if (role === "facility_manager" && buildingId) {
-            await supabase.from("profiles").update({ assigned_building_id: buildingId, full_name: fullName }).eq("id", uid);
-          } else {
-            await supabase.from("profiles").update({ full_name: fullName }).eq("id", uid);
+          // Attempt to assign role but don't crash if trigger already handled it
+          try {
+            await supabase.from("user_roles").insert({ user_id: uid, role }).select().single();
+            if (role === "facility_manager" && buildingId) {
+              await supabase.from("profiles").update({ assigned_building_id: buildingId, full_name: fullName }).eq("id", uid);
+            } else {
+              await supabase.from("profiles").update({ full_name: fullName }).eq("id", uid);
+            }
+          } catch (roleError) {
+            console.log("Role might have been assigned by trigger:", roleError);
           }
         }
-        toast.success("تم إنشاء الحساب بنجاح");
-        nav({ to: "/dashboard", replace: true });
+
+        if (data.session) {
+          toast.success("تم إنشاء الحساب بنجاح");
+          nav({ to: "/dashboard", replace: true });
+        } else {
+          toast.info("تم إنشاء الحساب. يرجى التحقق من بريدك الإلكتروني لتفعيله، أو تسجيل الدخول إذا كان التفعيل معطلاً.");
+          setMode("signin");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
