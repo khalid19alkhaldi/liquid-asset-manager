@@ -60,26 +60,17 @@ function AuthPage() {
         });
         if (error) throw error;
 
-        const uid = data.user?.id;
-        if (uid) {
-          // Attempt to assign role but don't crash if trigger already handled it
-          try {
-            await supabase.from("user_roles").insert({ user_id: uid, role }).select().single();
-            if (role === "facility_manager" && buildingId) {
-              await supabase.from("profiles").update({ assigned_building_id: buildingId, full_name: fullName }).eq("id", uid);
-            } else {
-              await supabase.from("profiles").update({ full_name: fullName }).eq("id", uid);
-            }
-          } catch (roleError) {
-            console.log("Role might have been assigned by trigger:", roleError);
-          }
+        // We rely on the DB Trigger 'handle_new_user' to assign 'admin' role and confirm profile.
+        // We only manually update building if it's a facility manager.
+        if (data.user?.id && role === "facility_manager" && buildingId) {
+          await supabase.from("profiles").update({ assigned_building_id: buildingId }).eq("id", data.user.id);
         }
 
         if (data.session) {
-          toast.success("تم إنشاء الحساب بنجاح");
+          toast.success("تم إنشاء الحساب بنجاح ودخولك كمسؤول");
           nav({ to: "/dashboard", replace: true });
         } else {
-          toast.info("تم إنشاء الحساب. يرجى التحقق من بريدك الإلكتروني لتفعيله، أو تسجيل الدخول إذا كان التفعيل معطلاً.");
+          toast.info("تم إنشاء الحساب. إذا لم تفتح الصفحة تلقائياً، حاول تسجيل الدخول الآن.");
           setMode("signin");
         }
       } else {
