@@ -27,7 +27,7 @@ function Landing() {
               <div className="text-xs text-muted-foreground">HQ Jubail Portal</div>
             </div>
           </div>
-          <Link to="/dashboard" className="btn-primary text-sm">دخول المنصة</Link>
+          <Link to="/auth" className="btn-primary text-sm">دخول المنصة</Link>
         </div>
       </nav>
 
@@ -45,7 +45,7 @@ function Landing() {
             بوابة موحّدة لتقديم بلاغات الصيانة، حساب التكلفة التقديرية آلياً، ومتابعة الميزانيات لكل مبنى ومرفق تابع للجمعية.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link to="/dashboard" className="btn-primary">ابدأ الآن</Link>
+            <Link to="/auth" className="btn-primary">ابدأ الآن</Link>
             <a href="#features" className="btn-ghost">استعراض المزايا</a>
           </div>
         </section>
@@ -55,7 +55,7 @@ function Landing() {
             { icon: Building2, title: "5 مبانٍ رئيسية", desc: "الإدارة، المدرسة، السكن، المستودع، والمكاتب الفرعية" },
             { icon: ClipboardList, title: "بلاغات لحظية", desc: "تتبع حالة كل بلاغ من الطلب حتى الإكمال" },
             { icon: Wallet2, title: "تسعير تلقائي", desc: "حساب التكلفة التقديرية من دليل الأسعار المعتمد" },
-            { icon: ShieldCheck, title: "وصول مفتوح", desc: "إمكانية الوصول لجميع الأدوار والمستخدمين" },
+            { icon: ShieldCheck, title: "صلاحيات محكمة", desc: "3 أدوار: مسؤول منشأة، مدير عام، وفني صيانة" },
           ].map((f) => (
             <div key={f.title} className="glass-card glass-card-hover p-6 text-center">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: "var(--gradient-primary)" }}>
@@ -70,9 +70,9 @@ function Landing() {
         <section className="mt-20">
           <div className="glass-panel p-10 text-center">
             <h2 className="text-3xl font-bold text-secondary">جاهز للبدء؟</h2>
-            <p className="mt-3 text-muted-foreground">ادخل مباشرة إلى لوحة التحكم لبدء إدارة بلاغات الصيانة.</p>
+            <p className="mt-3 text-muted-foreground">أنشئ حسابك الآن وابدأ بإدارة أصولك بكل سهولة.</p>
             <div className="mt-6">
-              <Link to="/dashboard" className="btn-gold">الدخول للوحة التحكم</Link>
+              <Link to="/auth" className="btn-gold">الدخول للمنصة</Link>
             </div>
           </div>
         </section>
