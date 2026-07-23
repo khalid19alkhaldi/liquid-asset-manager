@@ -1,8 +1,7 @@
 
--- ============ THE TOTAL RESET & RECONSTRUCTION (FINAL VERSION) ============
+-- ============ THE TOTAL RESET & RECONSTRUCTION (FINAL CORRECTED VERSION) ============
 
 -- 1. DESTRUCTIVE CLEANUP
--- We drop everything related to accounts to ensure no legacy conflicts exist.
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP FUNCTION IF EXISTS public.handle_new_user();
 DROP TABLE IF EXISTS public.user_roles CASCADE;
@@ -33,21 +32,19 @@ CREATE TABLE public.user_roles (
 -- 4. MASTER PERMISSIONS & RLS (OPEN ACCESS)
 DO $$
 DECLARE
-    t text;
+    t_name text;
+    r_pol RECORD;
 BEGIN
-    FOR t IN (SELECT table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP
-        -- Wipe all existing policies
-        EXECUTE format('ALTER TABLE public.%I DISABLE ROW LEVEL SECURITY', t);
+    FOR t_name IN (SELECT table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP
+        EXECUTE format('ALTER TABLE public.%I DISABLE ROW LEVEL SECURITY', t_name);
 
-        FOR r IN (SELECT policyname FROM pg_policies WHERE tablename = t AND schemaname = 'public') LOOP
-            EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, t);
+        FOR r_pol IN (SELECT policyname FROM pg_policies WHERE tablename = t_name AND schemaname = 'public') LOOP
+            EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r_pol.policyname, t_name);
         END LOOP;
 
-        -- Create a universal "Open Access" policy for development/testing
-        EXECUTE format('CREATE POLICY "Universal_Access" ON public.%I FOR ALL TO authenticated, anon USING (true) WITH CHECK (true)', t);
+        EXECUTE format('CREATE POLICY "Universal_Access" ON public.%I FOR ALL TO authenticated, anon USING (true) WITH CHECK (true)', t_name);
 
-        -- Enable RLS back
-        EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
+        EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t_name);
     END LOOP;
 END $$;
 
@@ -55,11 +52,10 @@ END $$;
 CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS TRIGGER
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  -- Create Profile
   INSERT INTO public.profiles (id, full_name, email)
   VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email), NEW.email);
 
-  -- Assign Admin Role automatically to every new signup
+  -- Assign Admin Role automatically
   INSERT INTO public.user_roles (user_id, role)
   VALUES (NEW.id, 'admin');
 
@@ -74,3 +70,6 @@ GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, service_role, authenticate
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, service_role, authenticated, anon;
 GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO postgres, service_role, authenticated, anon;
 GRANT ALL ON SCHEMA public TO postgres, service_role, authenticated, anon;
+
+-- 7. AUTO-CONFIRM FUTURE SIGNUPS
+UPDATE auth.users SET email_confirmed_at = now();
