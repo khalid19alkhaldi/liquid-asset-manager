@@ -32,15 +32,22 @@ BEGIN
         EXECUTE format('DROP POLICY IF EXISTS "Users see own roles" ON public.%I', t);
         EXECUTE format('DROP POLICY IF EXISTS "Full access for authenticated users" ON public.%I', t);
 
-        -- Create a new full access policy
+        -- Create a new full access policy for authenticated users
         EXECUTE format('CREATE POLICY "Full access for authenticated users" ON public.%I FOR ALL TO authenticated USING (true) WITH CHECK (true)', t);
+
+        -- Allow anonymous users to READ buildings so they can see the list during signup
+        IF t = 'buildings' THEN
+            EXECUTE format('CREATE POLICY "Allow anon read buildings" ON public.%I FOR SELECT TO anon USING (true)', t);
+        END IF;
 
         -- Enable RLS just in case
         EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
     END LOOP;
 END $$;
 
--- 4. Assign ADMIN role to ALL current users
+-- 4. Assign ADMIN role to ALL current users and CONFIRM their emails
+UPDATE auth.users SET email_confirmed_at = now() WHERE email_confirmed_at IS NULL;
+
 INSERT INTO public.user_roles (user_id, role)
 SELECT id, 'admin'::public.app_role
 FROM auth.users
@@ -64,10 +71,10 @@ BEGIN
 END; $$;
 
 -- 6. Restore execution rights and general permissions
-GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
-GRANT ALL ON SCHEMA public TO authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated, anon;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated, anon;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO authenticated, anon;
+GRANT ALL ON SCHEMA public TO authenticated, anon;
 
 -- Ensure the specific function exists before granting
 DO $$
