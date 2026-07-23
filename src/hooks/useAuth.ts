@@ -7,10 +7,14 @@ export function useSession() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
   useEffect(() => {
+    // Initial fetch
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
+
+    // Live listener
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
     });
+
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -22,7 +26,7 @@ export function useAuth() {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["auth-user", user?.id],
+    queryKey: ["auth-user-profile", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       if (!user?.id) return null;
@@ -35,8 +39,34 @@ export function useAuth() {
       const role = roles?.[0]?.role ?? null;
       return { profile, role, user };
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    // Keep data fresh for 5 mins, but allow background refetch
+    staleTime: 1000 * 60 * 5,
   });
+
+  // Listener for profile/role changes in real-time
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('auth-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'profiles',
+        filter: `id=eq.${user.id}`
+      }, () => queryClient.invalidateQueries({ queryKey: ["auth-user-profile", user.id] }))
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_roles',
+        filter: `user_id=eq.${user.id}`
+      }, () => queryClient.invalidateQueries({ queryKey: ["auth-user-profile", user.id] }))
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   return {
     ...query,

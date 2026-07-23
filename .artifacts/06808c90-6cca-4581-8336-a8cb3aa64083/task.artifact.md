@@ -1,5 +1,4 @@
-- [x] Research and Plan creation
-- [/] Updating Database Logic (`99999999999999_full_access.sql`)
-- [ ] Updating Frontend Signup Flow (`auth.tsx`)
-- [ ] Pushing changes to GitHub
-- [ ] Final SQL instructions for the user
+- [ ] Rebuild Database Auth Logic (`99999999999999_full_access.sql`)
+- [ ] Rebuild Frontend Auth UI and Logic (`src/routes/auth.tsx`)
+- [ ] Optimize Session Hook (`src/hooks/useAuth.ts`)
+- [ ] Push to GitHub and provide final instructions
