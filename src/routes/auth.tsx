@@ -49,21 +49,15 @@ function AuthPage() {
           email,
           password,
           options: {
-            data: { full_name: fullName },
+            data: {
+              full_name: fullName,
+              role: role,
+              assigned_building_id: role === "facility_manager" ? buildingId : null
+            },
           },
         });
 
         if (error) throw error;
-
-        const uid = data.user?.id;
-        if (uid) {
-          // Manual role and building assignment for non-first users
-          // (First user is auto-admin via DB trigger)
-          await supabase.from("user_roles").insert({ user_id: uid, role }).select().single();
-          if (role === "facility_manager" && buildingId) {
-            await supabase.from("profiles").update({ assigned_building_id: buildingId }).eq("id", uid);
-          }
-        }
 
         toast.success("تم إنشاء الحساب بنجاح");
         nav({ to: "/dashboard", replace: true });
