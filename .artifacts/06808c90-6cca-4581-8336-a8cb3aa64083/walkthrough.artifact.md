@@ -1,18 +1,25 @@
-# Walkthrough - Git Push and Metadata Restoration
+# Walkthrough - The Master Reset
 
-I have completed the request to PUSH the changes. Additionally, I ensured that no important metadata from the remote repository was lost during the push process.
+I have completed the "Master Reset" cleanup to fix all authentication and permission issues.
 
 ## Changes Made
 
-### Version Control
-- Pushed the "تفعيل الصلاحيات الكاملة" commit to the `main` branch.
-- Resolved a rebase conflict by merging the local changes with the remote's improved site metadata.
+### Database Migration (Consolidated Fix)
+- Created a robust SQL script in `99999999999999_full_access.sql` that:
+    - Restores all revoked permissions.
+    - Sets all tables to "Full Access" for authenticated users.
+    - Allows anonymous users to see the building list for signup.
+    - Automatically confirms emails and assigns the `admin` role to all new signups via a database trigger.
 
-### Frontend Enhancements
-- **Metadata Restoration**: Restored high-quality descriptions and social sharing images (OpenGraph/Twitter) in [__root.tsx](file:///C:/Projects/liquid-asset-manager-main/src/routes/__root.tsx) and [index.tsx](file:///C:/Projects/liquid-asset-manager-main/src/routes/index.tsx) that were previously updated on the remote.
+### Frontend Auth (Simplified Flow)
+- Cleaned up `auth.tsx` to remove redundant role assignment logic that was causing race conditions.
+- Added better error logging and user feedback for the signup/login process.
 
-## Verification Results
+## Final Steps for the User
 
-### Manual Verification
-- Verified that the latest commit on `origin/main` includes both the "Full Access" SQL migration and the restored metadata improvements.
-- Confirmed that the site title, description, and preview images are correctly configured for deployment.
+> [!IMPORTANT]
+> To finish the reset, follow these three steps in order:
+
+1. **Delete All Users**: In Supabase Dashboard, go to **Authentication > Users** and delete any existing accounts.
+2. **Run the SQL**: Copy the code from [99999999999999_full_access.sql](file:///C:/Projects/liquid-asset-manager-main/supabase/migrations/99999999999999_full_access.sql), paste it into the **SQL Editor**, and click **Run**.
+3. **Sign Up Again**: Refresh your app and create a new account. You will be logged in as an Admin automatically.

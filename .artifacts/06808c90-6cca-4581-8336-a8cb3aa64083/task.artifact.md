@@ -1,4 +1,6 @@
-- [ ] Update Master SQL Script (`99999999999999_full_access.sql`)
-- [ ] Update Frontend Auth Logic (`auth.tsx`)
-- [ ] Instruct user to run SQL and delete users
-- [ ] Push changes to GitHub
+- [x] Update Master SQL Script (`99999999999999_full_access.sql`)
+- [x] Update Frontend Auth Logic (`auth.tsx`)
+- [x] Instruct user to run SQL and delete users
+- [x] Push changes to GitHub
+- [x] Implement Total Reset SQL Script
+- [ ] Final Verification with User

@@ -1,75 +1,42 @@
 
--- ============ THE TOTAL RESET & RECONSTRUCTION (FINAL CORRECTED VERSION) ============
+-- ============ THE TOTAL AUTH REMOVAL ============
 
--- 1. DESTRUCTIVE CLEANUP
+-- 1. DESTRUCTIVE CLEANUP (Removes all Auth-related tables and logic)
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP FUNCTION IF EXISTS public.handle_new_user();
 DROP TABLE IF EXISTS public.user_roles CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 DROP TYPE IF EXISTS public.app_role CASCADE;
 
--- 2. REBUILD TYPES
-CREATE TYPE public.app_role AS ENUM ('admin', 'facility_manager', 'technician');
+-- 2. MODIFY EXISTING TABLES (Make them independent of auth.users)
+ALTER TABLE public.maintenance_requests ALTER COLUMN reported_by DROP NOT NULL;
+ALTER TABLE public.maintenance_requests ALTER COLUMN reported_by TYPE TEXT USING reported_by::text;
+COMMENT ON COLUMN public.maintenance_requests.reported_by IS 'Now stores a name or label instead of a UUID';
 
--- 3. REBUILD TABLES
-CREATE TABLE public.profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  full_name TEXT,
-  email TEXT,
-  assigned_building_id UUID REFERENCES public.buildings(id) ON DELETE SET NULL,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE TABLE public.user_roles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role public.app_role NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (user_id, role)
-);
-
--- 4. MASTER PERMISSIONS & RLS (OPEN ACCESS)
+-- 3. MASTER PERMISSIONS & RLS (OPEN ACCESS FOR ANON)
 DO $$
 DECLARE
     t_name text;
     r_pol RECORD;
 BEGIN
     FOR t_name IN (SELECT table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP
+        -- Disable and Re-enable to reset
         EXECUTE format('ALTER TABLE public.%I DISABLE ROW LEVEL SECURITY', t_name);
 
+        -- Drop ALL existing policies
         FOR r_pol IN (SELECT policyname FROM pg_policies WHERE tablename = t_name AND schemaname = 'public') LOOP
             EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r_pol.policyname, t_name);
         END LOOP;
 
-        EXECUTE format('CREATE POLICY "Universal_Access" ON public.%I FOR ALL TO authenticated, anon USING (true) WITH CHECK (true)', t_name);
+        -- Create a single Universal policy for EVERYONE (anon and authenticated)
+        EXECUTE format('CREATE POLICY "Universal_Open_Access" ON public.%I FOR ALL TO anon, authenticated USING (true) WITH CHECK (true)', t_name);
 
         EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t_name);
     END LOOP;
 END $$;
 
--- 5. THE NEW ROBUST AUTO-ADMIN TRIGGER
-CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS TRIGGER
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  INSERT INTO public.profiles (id, full_name, email)
-  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email), NEW.email);
-
-  -- Assign Admin Role automatically
-  INSERT INTO public.user_roles (user_id, role)
-  VALUES (NEW.id, 'admin');
-
-  RETURN NEW;
-END; $$;
-
-CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- 6. GLOBAL GRANTS
-GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, service_role, authenticated, anon;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, service_role, authenticated, anon;
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO postgres, service_role, authenticated, anon;
-GRANT ALL ON SCHEMA public TO postgres, service_role, authenticated, anon;
-
--- 7. AUTO-CONFIRM FUTURE SIGNUPS
-UPDATE auth.users SET email_confirmed_at = now();
+-- 4. GLOBAL GRANTS TO ANON
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, postgres, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, postgres, service_role;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated, postgres, service_role;
+GRANT ALL ON SCHEMA public TO anon, authenticated, postgres, service_role;
