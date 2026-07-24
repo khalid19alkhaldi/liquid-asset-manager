@@ -21,12 +21,12 @@ function Landing() {
       <nav className="fixed top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
-              <ShieldCheck className="h-6 w-6" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white p-1 shadow-md border border-slate-100">
+              <img src={jubailLogo.url} alt="شعار جمعية الجبيل" className="h-full w-full object-contain" />
             </div>
             <div>
-              <div className="text-sm font-black text-secondary leading-tight">جمعية الجبيل الخيرية</div>
-              <div className="text-[10px] font-bold text-primary uppercase tracking-widest">بوابة إدارة الأصول</div>
+              <div className="text-sm font-black text-secondary leading-tight">الجمعية الخيرية لتحفيظ القرآن</div>
+              <div className="text-[10px] font-bold text-primary uppercase tracking-widest">بمحافظة الجبيل</div>
             </div>
           </div>
           <Link to="/auth" className="btn-primary text-xs px-8">دخول الموظفين</Link>
