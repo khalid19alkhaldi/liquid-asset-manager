@@ -5,176 +5,145 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * HQ Jubail Asset Management — Institutional Design System
- * Inspired by hqjubail.org.sa
+ * HQ Jubail — Modern SaaS Dashboard (Glassmorphism 2.0)
+ * Inspired by high-end enterprise management tools.
  */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
   --color-gold: var(--gold);
-  --color-gold-foreground: var(--gold-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-glass: var(--glass);
+
   --font-sans: "Readex Pro", "Cairo", system-ui, sans-serif;
 }
 
 :root {
-  --radius: 0.75rem;
+  --background: #fdfdfd;
+  --foreground: #0f172a;
 
-  /* Official HQ Jubail Palette */
-  --primary: #005a34; /* Forest Green */
+  /* Jubail Forest Green as refined primary */
+  --primary: #005a34;
   --primary-foreground: #ffffff;
 
-  --secondary: #111827; /* Dark Slate for Text */
-  --secondary-foreground: #f8fafc;
+  /* Slate/Navy for depth */
+  --secondary: #1e293b;
+  --secondary-foreground: #ffffff;
 
-  --accent: #c5a059; /* Bronze Gold */
-  --accent-foreground: #ffffff;
-
+  /* Gold as elegant accent */
+  --accent: #c5a059;
   --gold: #c5a059;
-  --gold-foreground: #ffffff;
 
-  --background: #f8fafc;
-  --foreground: #111827;
-
-  --card: #ffffff;
-  --card-foreground: #111827;
-  --popover: #ffffff;
-  --popover-foreground: #111827;
-
-  --muted: #f1f5f9;
+  --muted: #f8fafc;
   --muted-foreground: #64748b;
 
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #ffffff;
-  --ring: #005a34;
+  --border: rgba(226, 232, 240, 0.6);
+  --glass: rgba(255, 255, 255, 0.7);
+  --glass-blur: 16px;
 
-  --gradient-primary: linear-gradient(135deg, #005a34, #007a44);
-  --gradient-gold: linear-gradient(135deg, #c5a059, #d4af37);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
 .dark {
   --background: #020617;
   --foreground: #f8fafc;
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
+  --glass: rgba(15, 23, 42, 0.8);
+  --border: rgba(30, 41, 59, 0.6);
   --primary: #10b981;
-  --primary-foreground: #020617;
-  --secondary: #1e293b;
-  --border: #1e293b;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
+  * { border-color: var(--border); }
   html { direction: rtl; }
   body {
-    color: var(--color-foreground);
+    color: var(--foreground);
     font-family: var(--font-sans);
     background-color: var(--background);
+    background-image:
+      radial-gradient(at 0% 0%, rgba(0, 90, 52, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(197, 160, 89, 0.03) 0px, transparent 50%);
+    background-attachment: fixed;
     min-height: 100vh;
   }
 }
 
-/* ============ Institutional UI Utilities ============ */
-@utility inst-card {
-  background-color: var(--card);
+/* ============ Glassmorphism 2.0 Utilities ============ */
+@utility glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--border);
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  border-radius: var(--radius-lg);
-  transition: all 200ms ease;
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-xl);
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@utility inst-card-hover {
+@utility glass-card-hover {
   &:hover {
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    border-color: var(--color-primary);
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-2px);
+    border-color: rgba(0, 90, 52, 0.2);
   }
 }
 
+@utility glass-sidebar {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid var(--border);
+  box-shadow: 10px 0 50px -10px rgba(0, 0, 0, 0.05);
+}
+
+@utility glass-input {
+  @apply w-full h-12 px-5 rounded-2xl border border-slate-200 bg-white/50 backdrop-blur-sm transition-all;
+  &:focus {
+    @apply ring-4 ring-primary/10 border-primary bg-white outline-none;
+  }
+}
+
+/* ============ Typography & Icons ============ */
+@utility section-title {
+  @apply text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3;
+}
+
+@utility stat-value {
+  @apply text-4xl font-black text-slate-900 tracking-tight tabular-nums;
+}
+
+/* ============ Buttons (SaaS Style) ============ */
 @utility btn-primary {
-  background: var(--gradient-primary);
-  color: var(--color-primary-foreground);
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1.5rem;
-  font-weight: 700;
-  box-shadow: 0 4px 12px -2px rgba(0, 90, 52, 0.3);
-  transition: all 200ms;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  &:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -2px rgba(0, 90, 52, 0.4); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  @apply h-12 px-8 rounded-2xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2;
 }
 
 @utility btn-gold {
-  background: var(--gradient-gold);
-  color: var(--color-gold-foreground);
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1.5rem;
-  font-weight: 700;
-  box-shadow: 0 4px 12px -2px rgba(197, 160, 89, 0.3);
-  cursor: pointer;
-  transition: all 200ms;
-  &:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -2px rgba(197, 160, 89, 0.4); }
+  @apply h-12 px-8 rounded-2xl bg-gold text-white font-bold text-sm shadow-lg shadow-gold/20 hover:bg-gold/90 hover:shadow-xl hover:shadow-gold/30 active:scale-95 transition-all flex items-center justify-center gap-2;
 }
 
 @utility btn-outline {
-  background: transparent;
-  border: 2px solid var(--color-border);
-  color: var(--color-secondary);
-  border-radius: var(--radius-md);
-  padding: 0.7rem 1.4rem;
-  font-weight: 600;
-  transition: all 200ms;
-  &:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  @apply h-12 px-8 rounded-2xl border border-slate-200 bg-white text-slate-600 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all flex items-center justify-center gap-2;
 }
 
-@utility section-title {
-  @apply text-2xl font-black text-secondary relative pr-4;
-  &::before {
-    content: "";
-    @apply absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-primary rounded-full;
-  }
+@utility btn-ghost {
+  @apply h-10 px-4 rounded-xl text-slate-500 font-bold text-sm hover:bg-slate-100 hover:text-slate-900 transition-all flex items-center gap-2;
 }
 
-/* Backward compatibility for older utilities during migration */
-@utility glass-panel { @apply inst-card p-6; }
-@utility glass-card { @apply inst-card p-5; }
-@utility glass-input {
-  @apply w-full h-12 px-4 rounded-lg border border-border bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all;
-  &[multiple], &[size], select& {
-    @apply h-auto py-2;
-    appearance: auto;
-  }
+/* Data Table refinement */
+@utility data-table-row {
+  @apply border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer;
 }
-@utility text-gradient {
-  @apply font-black text-primary;
-}
+
+/* Trend indicators */
+@utility trend-up { @apply text-emerald-500 font-bold text-xs flex items-center gap-1; }
+@utility trend-down { @apply text-rose-500 font-bold text-xs flex items-center gap-1; }
