@@ -86,11 +86,11 @@ function AuthPage() {
       <div className="w-full max-w-lg">
         {/* Logo Section */}
         <div className="mb-10 text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-indigo-600 shadow-xl shadow-indigo-200 dark:shadow-none">
-            <ShieldCheck className="h-10 w-10 text-white" />
+          <div className="mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-[2rem] bg-white p-3 shadow-xl shadow-slate-200 border border-slate-100 dark:shadow-none">
+            <img src={jubailLogo.url} alt="شعار جمعية الجبيل الخيرية" className="h-full w-full object-contain" />
           </div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white">جمعية الجبيل الخيرية</h1>
-          <p className="mt-2 font-medium text-slate-500">منظومة إدارة الأصول الرقمية</p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white">الجمعية الخيرية لتحفيظ القرآن الكريم</h1>
+          <p className="mt-2 font-medium text-slate-500">بمحافظة الجبيل — منظومة إدارة الأصول الرقمية</p>
         </div>
 
         {/* Auth Card */}
