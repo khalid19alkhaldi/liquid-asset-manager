@@ -45,8 +45,8 @@ export function DashboardLayout({ children, userName, role, activeTab, onTabChan
         <div className="flex h-full flex-col px-6 py-8">
           {/* Brand Identity */}
           <div className="mb-12 flex items-center gap-4 pr-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-white shadow-2xl shadow-primary/20 transition-transform hover:scale-105">
-              <ShieldCheck className="h-7 w-7" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white p-1 shadow-lg border border-slate-100 transition-transform hover:scale-105">
+              <img src={jubailLogo.url} alt="شعار جمعية الجبيل" className="h-full w-full object-contain" />
             </div>
             <div>
               <div className="text-xl font-black text-slate-900 leading-none tracking-tight">جمعية الجبيل</div>
