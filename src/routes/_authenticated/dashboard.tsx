@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { AppHeader } from "@/components/AppHeader";
+import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { FacilityManagerView } from "@/features/dashboards/FacilityManagerView";
 import { AdminView } from "@/features/dashboards/AdminView";
 import { TechnicianView } from "@/features/dashboards/TechnicianView";
-import { GlassCard } from "@/components/GlassCard";
+import { ShieldAlert } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -21,40 +21,33 @@ function Dashboard() {
 
   if (isLoading || !data) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-        <AppHeader />
-        <div className="mx-auto max-w-7xl px-6 py-10">
-          <div className="glass-panel flex h-40 items-center justify-center text-slate-400">
-            <div className="flex items-center gap-3">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500/30 border-t-indigo-500" />
-              <span>جارٍ تحميل بياناتك...</span>
-            </div>
-          </div>
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+          <div className="text-sm font-bold text-slate-400">جارٍ تهيئة لوحة التحكم...</div>
         </div>
       </div>
     );
   }
 
   const { profile, role, user } = data;
-  const displayName = profile?.full_name ?? user?.email ?? "";
+  const displayName = profile?.full_name ?? user?.email ?? "مستخدم";
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <AppHeader userName={displayName} role={role} />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {!role && (
-          <GlassCard className="border-amber-100 bg-amber-50/30">
-            <h2 className="mb-2 text-lg font-bold text-amber-900 dark:text-amber-400">لم يتم تعيين دور لحسابك بعد</h2>
-            <p className="text-sm text-amber-800/80 dark:text-amber-500/80">
-              الرجاء التواصل مع مدير الصيانة العام لتعيين دورك وربطك بالمبنى المخصص. يمكنك التواصل عبر نظام المراسلات الداخلي أو التوجه لمكتب الإدارة.
-            </p>
-          </GlassCard>
-        )}
+    <DashboardLayout userName={displayName} role={role}>
+      {!role && (
+        <div className="rounded-3xl border border-amber-100 bg-amber-50/50 p-10 text-center">
+          <ShieldAlert className="mx-auto mb-4 h-16 w-16 text-amber-500" />
+          <h2 className="mb-2 text-2xl font-black text-amber-900">بانتظار تفعيل الصلاحيات</h2>
+          <p className="mx-auto max-w-md text-sm font-medium text-amber-800/70">
+            أهلاً بك في بوابة الجبيل للأصول. حسابك حالياً قيد المراجعة، يرجى التواصل مع الإدارة لتعيين دورك الوظيفي وربطك بالمنشأة المناسبة.
+          </p>
+        </div>
+      )}
 
-        {role === "admin" && <AdminView />}
-        {role === "facility_manager" && <FacilityManagerView profile={profile} />}
-        {role === "technician" && <TechnicianView userId={user!.id} />}
-      </main>
-    </div>
+      {role === "admin" && <AdminView />}
+      {role === "facility_manager" && <FacilityManagerView profile={profile} />}
+      {role === "technician" && <TechnicianView userId={user!.id} />}
+    </DashboardLayout>
   );
 }

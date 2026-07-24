@@ -1,4 +1,5 @@
-- [ ] Update `AdminView.tsx` to handle loading/error states and improve the users query.
-- [ ] Refine SQL Schema to ensure relationships are clear for data fetching.
-- [ ] Push changes to GitHub.
-- [ ] Provide final SQL to the user to ensure database alignment.
+- [ ] Update Visual Identity in `styles.css` (Forest Green & Gold)
+- [ ] Create `DashboardLayout.tsx` with Sidebar navigation
+- [ ] Overhaul `AdminView.tsx` with Institutional Grid and Charts
+- [ ] Redesign `NewRequestForm` to match the new theme
+- [ ] Final visual polish and verification

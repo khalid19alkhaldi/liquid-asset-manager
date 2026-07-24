@@ -1,12 +1,23 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { GlassCard } from "@/components/GlassCard";
 import { BudgetBar } from "@/components/BudgetBar";
 import { StatusPill, PriorityPill } from "@/components/StatusPill";
 import { formatSAR, buildingTypeLabel, roleLabel } from "@/lib/format";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Building2, Filter, Plus, Users, LayoutDashboard, ClipboardList, ShieldAlert, Trash2 } from "lucide-react";
+import {
+  Building2,
+  Filter,
+  Plus,
+  Users,
+  PieChart,
+  ClipboardList,
+  ShieldAlert,
+  Trash2,
+  TrendingUp,
+  Wallet,
+  AlertTriangle
+} from "lucide-react";
 
 export function AdminView() {
   const qc = useQueryClient();
@@ -30,15 +41,8 @@ export function AdminView() {
     queryKey: ["admin-users"],
     enabled: activeTab === "users",
     queryFn: async () => {
-      console.log("Fetching users...");
-      const { data: profiles, error } = await supabase
-        .from("profiles")
-        .select("*, user_roles(role)");
-
-      if (error) {
-        console.error("Supabase error fetching users:", error);
-        throw error;
-      }
+      const { data: profiles, error } = await supabase.from("profiles").select("*, user_roles(role)");
+      if (error) throw error;
       return profiles ?? [];
     },
   });
@@ -68,16 +72,14 @@ export function AdminView() {
   }
 
   async function deleteUser(userId: string, fullName: string) {
-    if (!confirm(`هل أنت متأكد من حذف حساب الموظف "${fullName}"؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
-
+    if (!confirm(`هل أنت متأكد من حذف حساب "${fullName}"؟`)) return;
     try {
       const { error } = await supabase.rpc('delete_user_by_admin', { target_user_id: userId });
       if (error) throw error;
-
-      toast.success("تم حذف الحساب بنجاح");
+      toast.success("تم حذف الحساب");
       qc.invalidateQueries({ queryKey: ["admin-users"] });
     } catch (err: any) {
-      toast.error(err.message || "فشل حذف الحساب");
+      toast.error(err.message || "فشل الحذف");
     }
   }
 
@@ -87,72 +89,119 @@ export function AdminView() {
     .reduce((s: number, r: any) => s + Number(r.actual_cost ?? r.estimated_cost ?? 0), 0);
 
   return (
-    <div className="space-y-6">
-      {/* Tab Navigation */}
-      <div className="flex gap-2 rounded-2xl bg-white/40 p-1 backdrop-blur-md dark:bg-slate-900/40">
+    <div className="space-y-8">
+      {/* Sub-Navigation for sections */}
+      <div className="flex gap-4 border-b border-slate-200 dark:border-slate-800">
         {[
-          { id: "stats", label: "نظرة عامة", icon: LayoutDashboard },
-          { id: "requests", label: "البلاغات", icon: ClipboardList },
-          { id: "users", label: "إدارة الموظفين", icon: Users },
+          { id: "stats", label: "نظرة عامة", icon: PieChart },
+          { id: "requests", label: "إدارة البلاغات", icon: ClipboardList },
+          { id: "users", label: "شؤون الموظفين", icon: Users },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all ${
+            className={`relative flex items-center gap-2 pb-4 text-sm font-bold transition-all ${
               activeTab === tab.id
-                ? "bg-white text-indigo-600 shadow-md dark:bg-slate-800 dark:text-indigo-400"
-                : "text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                ? "text-primary dark:text-emerald-400"
+                : "text-slate-400 hover:text-slate-600"
             }`}
           >
             <tab.icon className="h-4 w-4" />
             {tab.label}
+            {activeTab === tab.id && (
+              <div className="absolute bottom-0 left-0 h-0.5 w-full bg-primary dark:bg-emerald-400 rounded-full" />
+            )}
           </button>
         ))}
       </div>
 
       {activeTab === "stats" && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="grid gap-4 md:grid-cols-3">
-            <GlassCard>
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">إجمالي المباني</div>
-              <div className="mt-1 text-4xl font-black text-indigo-600 dark:text-indigo-400">{buildings.length}</div>
-            </GlassCard>
-            <GlassCard>
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">البلاغات النشطة</div>
-              <div className="mt-1 text-4xl font-black text-amber-500">{requests.filter(r => r.status !== 'completed' && r.status !== 'rejected').length}</div>
-            </GlassCard>
-            <GlassCard>
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">نسبة الإنجاز</div>
-              <div className="mt-1 text-4xl font-black text-emerald-500">
-                {requests.length ? Math.round((requests.filter(r => r.status === 'completed').length / requests.length) * 100) : 0}%
+        <div className="space-y-8">
+          {/* Executive Stats Grid */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              label="إجمالي البلاغات"
+              value={requests.length}
+              icon={ClipboardList}
+              color="indigo"
+            />
+            <StatCard
+              label="بلاغات نشطة"
+              value={requests.filter(r => r.status !== 'completed' && r.status !== 'rejected').length}
+              icon={TrendingUp}
+              color="emerald"
+            />
+            <StatCard
+              label="تحت المراجعة"
+              value={requests.filter(r => r.status === 'pending').length}
+              icon={AlertTriangle}
+              color="amber"
+            />
+            <StatCard
+              label="إجمالي المباني"
+              value={buildings.length}
+              icon={Building2}
+              color="slate"
+            />
+          </div>
+
+          {/* Budget Overview Section */}
+          <div className="inst-card overflow-hidden">
+            <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4 dark:border-slate-800 dark:bg-slate-900/50">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white">
+                  <Wallet className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-secondary dark:text-white">الميزانية السنوية العامة</h2>
+                  <p className="text-xs font-bold text-slate-400">إجمالي المخصصات لجميع مرافق الجمعية</p>
+                </div>
               </div>
-            </GlassCard>
+            </div>
+            <div className="p-8">
+              <BudgetBar total={totalBudget} spent={totalSpent} label="المجموع الكلي المعتمد" />
+              <div className="mt-6 flex gap-8">
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">إجمالي المصروف</div>
+                  <div className="text-xl font-black text-secondary">{formatSAR(totalSpent)}</div>
+                </div>
+                <div className="h-10 w-px bg-slate-100 dark:bg-slate-800" />
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">المتبقي المتوفر</div>
+                  <div className="text-xl font-black text-primary">{formatSAR(totalBudget - totalSpent)}</div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-6">
-            <h2 className="mb-4 text-lg font-black text-slate-800 dark:text-white">الميزانية الإجمالية</h2>
-            <BudgetBar total={totalBudget} spent={totalSpent} label="المجموع الكلي للجمعية" />
-          </div>
-
-          <div className="mt-8">
-            <h2 className="mb-4 text-lg font-black text-slate-800 dark:text-white">حالة المباني</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Buildings Grid */}
+          <div>
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="section-title">حالة صيانة المباني</h2>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {buildings.map((b: any) => {
                 const bSpent = requests
                   .filter((r: any) => r.building_id === b.id && r.status === "completed")
                   .reduce((s: number, r: any) => s + Number(r.actual_cost ?? r.estimated_cost ?? 0), 0);
                 return (
-                  <GlassCard key={b.id} interactive onClick={() => { setSelectedBuildingId(b.id); setShowForm(true); }}>
-                    <div className="mb-4 flex items-center justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-slate-800">
-                        <Building2 className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                  <div
+                    key={b.id}
+                    onClick={() => { setSelectedBuildingId(b.id); setShowForm(true); }}
+                    className="inst-card inst-card-hover group cursor-pointer p-6"
+                  >
+                    <div className="mb-4 flex items-start justify-between">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/5 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                        <Building2 className="h-6 w-6" />
                       </div>
-                      <Plus className="h-5 w-5 text-slate-300" />
+                      <div className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-slate-500 uppercase">
+                        {buildingTypeLabel(b.type)}
+                      </div>
                     </div>
-                    <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{buildingTypeLabel(b.type)}</div>
-                    <div className="mb-4 text-lg font-black text-slate-800 dark:text-white">{b.name}</div>
-                    <BudgetBar total={Number(b.annual_budget)} spent={bSpent} label="ميزانية المبنى" />
-                  </GlassCard>
+                    <h3 className="mb-1 text-lg font-black text-secondary group-hover:text-primary">{b.name}</h3>
+                    <p className="mb-5 text-xs font-bold text-slate-400">آخر فحص: منذ يومين</p>
+                    <BudgetBar total={Number(b.annual_budget)} spent={bSpent} label="ميزانية التشغيل" />
+                  </div>
                 );
               })}
             </div>
@@ -161,112 +210,107 @@ export function AdminView() {
       )}
 
       {activeTab === "requests" && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <h2 className="text-xl font-black text-slate-800 dark:text-white">سجل البلاغات</h2>
-            <div className="flex gap-2">
-              <select value={filterBuilding} onChange={(e) => setFilterBuilding(e.target.value)} className="glass-input h-10 min-w-40 text-sm">
-                <option value="">جميع المباني</option>
+        <div className="animate-in fade-in slide-in-from-bottom-2">
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <h2 className="section-title">سجل بلاغات الصيانة</h2>
+            <div className="flex gap-3">
+              <select value={filterBuilding} onChange={(e) => setFilterBuilding(e.target.value)} className="glass-input h-11 min-w-48 text-sm font-bold">
+                <option value="">جميع المواقع</option>
                 {buildings.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
-              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="glass-input h-10 text-sm">
-                <option value="">جميع الحالات</option>
-                <option value="pending">قيد الانتظار</option>
-                <option value="approved">معتمد</option>
-                <option value="in_progress">جاري التنفيذ</option>
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="glass-input h-11 text-sm font-bold">
+                <option value="">الحالة (الكل)</option>
+                <option value="pending">بانتظار المراجعة</option>
+                <option value="approved">معتمد للتنفيذ</option>
+                <option value="in_progress">جاري العمل</option>
                 <option value="completed">مكتمل</option>
               </select>
             </div>
           </div>
 
-          <div className="grid gap-4">
+          <div className="space-y-4">
             {filtered.map((r: any) => (
-              <GlassCard key={r.id}>
-                <div className="flex flex-wrap items-start justify-between gap-6">
+              <div key={r.id} className="inst-card overflow-hidden border-r-4 border-r-primary">
+                <div className="flex flex-wrap items-center justify-between gap-6 p-6">
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex items-center gap-3">
-                      <h3 className="text-lg font-black text-slate-800 dark:text-white">{r.title}</h3>
+                      <span className="text-xs font-black text-slate-400 tabular-nums">#{r.id.slice(0, 5)}</span>
+                      <h3 className="text-lg font-black text-secondary">{r.title}</h3>
                       <StatusPill status={r.status} />
                       <PriorityPill priority={r.priority} />
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{r.description}</p>
-                    <div className="mt-4 flex flex-wrap gap-4 border-t border-slate-100 pt-4 text-xs font-bold text-slate-500 dark:border-slate-800">
-                      <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {r.building?.name}</span>
-                      {r.facility && <span className="rounded-full bg-slate-100 px-2 py-0.5 dark:bg-slate-800">{r.facility.name}</span>}
+                    <p className="text-sm font-medium text-slate-500 line-clamp-2">{r.description}</p>
+                    <div className="mt-4 flex gap-6">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
+                        <Building2 className="h-3.5 w-3.5" /> {r.building?.name}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
+                        <TrendingUp className="h-3.5 w-3.5" /> {r.facility?.name}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-3 min-w-[200px]">
-                    <div className="text-right">
-                      <div className="text-[10px] font-bold uppercase text-slate-400">التكلفة التقديرية</div>
-                      <div className="text-xl font-black text-indigo-600 dark:text-indigo-400">{formatSAR(r.estimated_cost)}</div>
+                  <div className="flex items-center gap-8">
+                    <div className="text-left">
+                      <div className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">التكلفة المتوقعة</div>
+                      <div className="text-xl font-black text-primary tabular-nums">{formatSAR(r.estimated_cost)}</div>
                     </div>
 
                     <div className="flex gap-2">
                       {r.status === "pending" && (
                         <>
-                          <button onClick={() => updateRequest(r.id, { status: "approved" })} className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-100 transition-all hover:bg-indigo-700">اعتماد</button>
-                          <button onClick={() => updateRequest(r.id, { status: "rejected" })} className="rounded-xl bg-slate-100 px-4 py-2 text-xs font-bold text-slate-600 transition-all hover:bg-slate-200">رفض</button>
+                          <button onClick={() => updateRequest(r.id, { status: "approved" })} className="btn-primary py-2 px-6 text-xs">اعتماد</button>
+                          <button onClick={() => updateRequest(r.id, { status: "rejected" })} className="btn-outline py-2 px-6 text-xs">إلغاء</button>
                         </>
                       )}
                       {r.status === "approved" && (
-                        <button onClick={() => updateRequest(r.id, { status: "in_progress" })} className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-amber-100 transition-all hover:bg-amber-600">بدء العمل</button>
+                        <button onClick={() => updateRequest(r.id, { status: "in_progress" })} className="btn-gold py-2 px-6 text-xs">بدء العمل</button>
                       )}
                     </div>
                   </div>
                 </div>
-              </GlassCard>
+              </div>
             ))}
           </div>
         </div>
       )}
 
       {activeTab === "users" && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="mb-6 text-right">
-            <h2 className="text-xl font-black text-slate-800 dark:text-white">إدارة الحسابات والأدوار</h2>
-            <p className="text-sm text-slate-500">يمكنك هنا تغيير صلاحيات الموظفين وربطهم بالأدوار المناسبة.</p>
+        <div className="animate-in fade-in slide-in-from-bottom-2">
+          <div className="mb-8">
+            <h2 className="section-title">صلاحيات النظام</h2>
+            <p className="mt-2 text-sm font-medium text-slate-400 pr-4">إدارة الوصول للموظفين وتغيير الأدوار الوظيفية داخل المنصة.</p>
           </div>
 
           {isLoadingUsers ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-              <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-500" />
-              <div className="font-bold">جارٍ جلب قائمة الموظفين...</div>
-            </div>
-          ) : usersError ? (
-            <div className="rounded-2xl border border-red-100 bg-red-50 p-10 text-center">
-              <ShieldAlert className="mx-auto mb-4 h-12 w-12 text-red-500" />
-              <h3 className="mb-2 font-black text-red-900">حدث خطأ أثناء جلب البيانات</h3>
-              <p className="text-sm text-red-700">يرجى التأكد من تشغيل كود SQL الأخير وتحديث الصفحة.</p>
-            </div>
+            <LoadingState label="جارٍ مزامنة بيانات الموظفين..." />
           ) : (
-            <div className="grid gap-3">
+            <div className="space-y-3">
               {allUsers.map((u: any) => (
-                <GlassCard key={u.id}>
-                  <div className="flex items-center justify-between gap-4">
+                <div key={u.id} className="inst-card p-5">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-                        <Users className="h-6 w-6 text-slate-500" />
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 font-black text-slate-400 border border-slate-100">
+                        {u.full_name?.charAt(0) || 'U'}
                       </div>
                       <div>
-                        <div className="font-black text-slate-800 dark:text-white">{u.full_name || 'بدون اسم'}</div>
-                        <div className="text-xs text-slate-500">{u.email}</div>
+                        <div className="font-black text-secondary leading-tight">{u.full_name || 'موظف جديد'}</div>
+                        <div className="text-xs font-bold text-slate-400 tabular-nums">{u.email}</div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="mr-4 text-right">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase">الدور الحالي</div>
-                        <div className="text-sm font-bold text-indigo-600">
-                          {u.user_roles?.[0]?.role ? roleLabel(u.user_roles[0].role) : 'بدون دور'}
-                        </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-left ml-6">
+                        <div className="text-[10px] font-bold uppercase text-slate-300">الصلاحية</div>
+                        <div className="text-sm font-black text-primary">{u.user_roles?.[0]?.role ? roleLabel(u.user_roles[0].role) : 'معلق'}</div>
                       </div>
+
                       <select
                         onChange={(e) => updateUserRole(u.id, e.target.value)}
                         defaultValue={u.user_roles?.[0]?.role || ""}
-                        className="glass-input h-10 text-sm"
+                        className="glass-input h-10 min-w-36 text-xs font-bold"
                       >
-                        <option value="">اختر دوراً...</option>
+                        <option value="">تغيير الدور...</option>
                         <option value="admin">مدير عام</option>
                         <option value="facility_manager">مسؤول منشأة</option>
                         <option value="technician">فني صيانة</option>
@@ -274,40 +318,58 @@ export function AdminView() {
 
                       <button
                         onClick={() => deleteUser(u.id, u.full_name)}
-                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white"
-                        title="حذف الحساب"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 transition-all hover:bg-red-600 hover:text-white"
                       >
                         <Trash2 className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
-                </GlassCard>
-              ))}
-              {allUsers.length === 0 && (
-                <div className="rounded-2xl border border-slate-100 bg-white/50 p-10 text-center dark:bg-slate-900/50">
-                  <Users className="mx-auto mb-4 h-12 w-12 text-slate-300" />
-                  <div className="font-bold text-slate-500">لا يوجد موظفون مسجلون حالياً في النظام.</div>
                 </div>
-              )}
+              ))}
             </div>
           )}
         </div>
       )}
 
       {showForm && selectedBuildingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md">
+          <div className="w-full max-w-2xl animate-in zoom-in-95 duration-200">
             <NewRequestForm
               buildingId={selectedBuildingId}
               onClose={() => setShowForm(false)}
-              onCreated={() => {
-                qc.invalidateQueries({ queryKey: ["all-requests"] });
-                setShowForm(false);
-              }}
+              onCreated={() => { qc.invalidateQueries({ queryKey: ["all-requests"] }); setShowForm(false); }}
             />
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function StatCard({ label, value, icon: Icon, color }: any) {
+  const colors: any = {
+    indigo: "text-indigo-600 bg-indigo-50 border-indigo-100",
+    emerald: "text-emerald-600 bg-emerald-50 border-emerald-100",
+    amber: "text-amber-600 bg-amber-50 border-amber-100",
+    slate: "text-slate-600 bg-slate-50 border-slate-100",
+  };
+
+  return (
+    <div className="inst-card p-6 border-b-4 border-b-transparent hover:border-b-primary">
+      <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${colors[color]}`}>
+        <Icon className="h-6 w-6" />
+      </div>
+      <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</div>
+      <div className="mt-1 text-3xl font-black text-secondary tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+function LoadingState({ label }: { label: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 text-slate-300">
+      <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+      <div className="text-sm font-bold">{label}</div>
     </div>
   );
 }
@@ -363,17 +425,19 @@ function NewRequestForm({ buildingId, onClose, onCreated }: { buildingId: string
   }
 
   return (
-    <GlassCard className="border-indigo-100 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-      <form onSubmit={submit} className="space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
-          <h3 className="text-xl font-black text-slate-800 dark:text-white">إنشاء بلاغ صيانة</h3>
-          <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">إغلاق</button>
-        </div>
+    <div className="inst-card bg-white p-0 shadow-2xl">
+      <div className="flex items-center justify-between border-b border-slate-100 px-8 py-6">
+        <h3 className="text-xl font-black text-secondary">إضافة بلاغ صيانة جديد</h3>
+        <button type="button" onClick={onClose} className="rounded-full bg-slate-50 p-2 text-slate-400 hover:text-slate-600 transition-colors">
+          <Trash2 className="h-5 w-5" />
+        </button>
+      </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">المرفق المتضرر</label>
-            <select required value={facilityId} onChange={(e) => setFacilityId(e.target.value)} className="glass-input h-11 text-sm">
+      <form onSubmit={submit} className="space-y-6 p-8">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-wider text-slate-500">المرفق</label>
+            <select required value={facilityId} onChange={(e) => setFacilityId(e.target.value)} className="glass-input font-bold text-sm">
               <option value="">اختر المرفق...</option>
               <optgroup label="مرافق داخلية">
                 {facilities.filter((f: any) => f.category === "interior").map((f: any) => (
@@ -387,10 +451,10 @@ function NewRequestForm({ buildingId, onClose, onCreated }: { buildingId: string
               </optgroup>
             </select>
           </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">الأولوية</label>
-            <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="glass-input h-11 text-sm">
-              <option value="low">منخفضة</option>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-wider text-slate-500">الأولوية</label>
+            <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="glass-input font-bold text-sm">
+              <option value="low">عادية</option>
               <option value="medium">متوسطة</option>
               <option value="high">عالية</option>
               <option value="urgent">طارئة جداً</option>
@@ -398,27 +462,30 @@ function NewRequestForm({ buildingId, onClose, onCreated }: { buildingId: string
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">عنوان موجز للعطل</label>
-          <input required value={title} onChange={(e) => setTitle(e.target.value)} className="glass-input h-11 text-sm" placeholder="مثال: تسرب مياه في دورات المياه" />
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-wider text-slate-500">عنوان البلاغ</label>
+          <input required value={title} onChange={(e) => setTitle(e.target.value)} className="glass-input font-bold text-sm" placeholder="وصف موجز للمشكلة" />
         </div>
 
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">وصف دقيق للمشكلة</label>
-          <textarea required value={description} onChange={(e) => setDescription(e.target.value)} className="glass-input min-h-24 py-3 text-sm" placeholder="اشرح لنا تفاصيل العطل..." />
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-wider text-slate-500">تفاصيل العطل</label>
+          <textarea required value={description} onChange={(e) => setDescription(e.target.value)} className="glass-input min-h-32 py-4 font-bold text-sm" placeholder="يرجى كتابة شرح مفصل للمشكلة..." />
         </div>
 
         {selected && (
-          <div className="flex items-center justify-between rounded-2xl bg-indigo-50/50 p-4 dark:bg-indigo-950/20">
-            <div className="text-sm font-bold text-slate-600 dark:text-slate-400">التكلفة التقديرية بناءً على نوع المرفق:</div>
-            <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{formatSAR(estimate ?? 0)}</div>
+          <div className="flex items-center justify-between rounded-2xl bg-primary/5 p-6 border border-primary/10">
+            <div className="text-sm font-bold text-primary">التكلفة التقديرية للصيانة:</div>
+            <div className="text-3xl font-black text-primary tabular-nums">{formatSAR(estimate ?? 0)}</div>
           </div>
         )}
 
-        <button disabled={loading} className="btn-primary h-12 w-full text-base font-black shadow-lg shadow-indigo-200">
-          {loading ? "جارٍ الإرسال..." : "تأكيد وإرسال البلاغ"}
-        </button>
+        <div className="flex gap-4 pt-2">
+          <button disabled={loading} className="btn-primary h-14 flex-1 text-base font-black">
+            {loading ? "جارٍ الحفظ..." : "تأكيد وإرسال البلاغ"}
+          </button>
+          <button type="button" onClick={onClose} className="btn-outline h-14 px-10">إلغاء</button>
+        </div>
       </form>
-    </GlassCard>
+    </div>
   );
 }
