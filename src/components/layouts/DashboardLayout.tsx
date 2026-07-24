@@ -100,7 +100,7 @@ export function DashboardLayout({ children, userName, role, activeTab, onTabChan
             <div className="flex items-center justify-between gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm hover:shadow-md transition-all">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 font-black shadow-inner border border-indigo-100/50">
-                  {userName?.charAt(0) || "U"}
+                  {(userName ?? "U").charAt(0)}
                 </div>
                 <div className="min-w-0 flex-1 text-right">
                   <div className="truncate text-xs font-black text-slate-900">{userName}</div>
