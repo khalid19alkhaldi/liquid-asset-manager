@@ -7,13 +7,13 @@ import {
   Users,
   Building2,
   LogOut,
-  ShieldCheck,
   ChevronLeft,
   Bell,
   Search,
   Command
 } from "lucide-react";
 import { roleLabel } from "@/lib/format";
+import jubailLogo from "@/assets/jubail-logo.png.asset.json";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -45,8 +45,8 @@ export function DashboardLayout({ children, userName, role, activeTab, onTabChan
         <div className="flex h-full flex-col px-6 py-8">
           {/* Brand Identity */}
           <div className="mb-12 flex items-center gap-4 pr-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-white shadow-2xl shadow-primary/20 transition-transform hover:scale-105">
-              <ShieldCheck className="h-7 w-7" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white p-1 shadow-lg border border-slate-100 transition-transform hover:scale-105">
+              <img src={jubailLogo.url} alt="شعار جمعية الجبيل" className="h-full w-full object-contain" />
             </div>
             <div>
               <div className="text-xl font-black text-slate-900 leading-none tracking-tight">جمعية الجبيل</div>
@@ -100,11 +100,11 @@ export function DashboardLayout({ children, userName, role, activeTab, onTabChan
             <div className="flex items-center justify-between gap-3 rounded-2xl bg-white border border-slate-100 p-4 shadow-sm hover:shadow-md transition-all">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 font-black shadow-inner border border-indigo-100/50">
-                  {userName?.charAt(0) || "U"}
+                  {(userName ?? "U").charAt(0)}
                 </div>
                 <div className="min-w-0 flex-1 text-right">
                   <div className="truncate text-xs font-black text-slate-900">{userName}</div>
-                  <div className="mt-0.5 text-[9px] font-bold text-slate-400 uppercase tracking-tight">{roleLabel(role)}</div>
+                  <div className="mt-0.5 text-[9px] font-bold text-slate-400 uppercase tracking-tight">{roleLabel(role ?? undefined)}</div>
                 </div>
               </div>
               <button

@@ -17,54 +17,48 @@ export type Database = {
       buildings: {
         Row: {
           annual_budget: number
-          created_at: string
+          created_at: string | null
           id: string
           location: string | null
           name: string
-          type: Database["public"]["Enums"]["building_type"]
-          updated_at: string
+          type: string
         }
         Insert: {
           annual_budget?: number
-          created_at?: string
+          created_at?: string | null
           id?: string
           location?: string | null
           name: string
-          type: Database["public"]["Enums"]["building_type"]
-          updated_at?: string
+          type: string
         }
         Update: {
           annual_budget?: number
-          created_at?: string
+          created_at?: string | null
           id?: string
           location?: string | null
           name?: string
-          type?: Database["public"]["Enums"]["building_type"]
-          updated_at?: string
+          type?: string
         }
         Relationships: []
       }
       facilities: {
         Row: {
           building_id: string
-          category: Database["public"]["Enums"]["facility_category"]
-          created_at: string
+          category: string
           facility_type: string
           id: string
           name: string
         }
         Insert: {
           building_id: string
-          category: Database["public"]["Enums"]["facility_category"]
-          created_at?: string
+          category: string
           facility_type: string
           id?: string
           name: string
         }
         Update: {
           building_id?: string
-          category?: Database["public"]["Enums"]["facility_category"]
-          created_at?: string
+          category?: string
           facility_type?: string
           id?: string
           name?: string
@@ -82,54 +76,51 @@ export type Database = {
       maintenance_requests: {
         Row: {
           actual_cost: number | null
-          admin_notes: string | null
           assigned_to: string | null
           building_id: string
           completed_at: string | null
-          created_at: string
+          created_at: string | null
           description: string
           estimated_cost: number | null
           facility_id: string | null
           id: string
-          priority: Database["public"]["Enums"]["priority_level"]
-          reported_by: string
-          status: Database["public"]["Enums"]["request_status"]
+          priority: string
+          reported_by: string | null
+          status: string
           technician_notes: string | null
           title: string
           updated_at: string
         }
         Insert: {
           actual_cost?: number | null
-          admin_notes?: string | null
           assigned_to?: string | null
           building_id: string
           completed_at?: string | null
-          created_at?: string
+          created_at?: string | null
           description: string
           estimated_cost?: number | null
           facility_id?: string | null
           id?: string
-          priority?: Database["public"]["Enums"]["priority_level"]
-          reported_by: string
-          status?: Database["public"]["Enums"]["request_status"]
+          priority?: string
+          reported_by?: string | null
+          status?: string
           technician_notes?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           actual_cost?: number | null
-          admin_notes?: string | null
           assigned_to?: string | null
           building_id?: string
           completed_at?: string | null
-          created_at?: string
+          created_at?: string | null
           description?: string
           estimated_cost?: number | null
           facility_id?: string | null
           id?: string
-          priority?: Database["public"]["Enums"]["priority_level"]
-          reported_by?: string
-          status?: Database["public"]["Enums"]["request_status"]
+          priority?: string
+          reported_by?: string | null
+          status?: string
           technician_notes?: string | null
           title?: string
           updated_at?: string
@@ -153,28 +144,22 @@ export type Database = {
       }
       price_catalog: {
         Row: {
-          created_at: string
           facility_type: string
           id: string
           service_name: string
           standard_price: number
-          unit: string | null
         }
         Insert: {
-          created_at?: string
           facility_type: string
           id?: string
           service_name: string
           standard_price: number
-          unit?: string | null
         }
         Update: {
-          created_at?: string
           facility_type?: string
           id?: string
           service_name?: string
           standard_price?: number
-          unit?: string | null
         }
         Relationships: []
       }
@@ -200,15 +185,7 @@ export type Database = {
           full_name?: string
           id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_assigned_building_id_fkey"
-            columns: ["assigned_building_id"]
-            isOneToOne: false
-            referencedRelation: "buildings"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -246,6 +223,13 @@ export type Database = {
         Returns: undefined
       }
       get_user_building: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "facility_manager" | "technician"
