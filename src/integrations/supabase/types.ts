@@ -75,7 +75,10 @@ export type Database = {
       }
       maintenance_requests: {
         Row: {
+          actual_cost: number | null
+          assigned_to: string | null
           building_id: string
+          completed_at: string | null
           created_at: string | null
           description: string
           estimated_cost: number | null
@@ -84,10 +87,15 @@ export type Database = {
           priority: string
           reported_by: string | null
           status: string
+          technician_notes: string | null
           title: string
+          updated_at: string
         }
         Insert: {
+          actual_cost?: number | null
+          assigned_to?: string | null
           building_id: string
+          completed_at?: string | null
           created_at?: string | null
           description: string
           estimated_cost?: number | null
@@ -96,10 +104,15 @@ export type Database = {
           priority?: string
           reported_by?: string | null
           status?: string
+          technician_notes?: string | null
           title: string
+          updated_at?: string
         }
         Update: {
+          actual_cost?: number | null
+          assigned_to?: string | null
           building_id?: string
+          completed_at?: string | null
           created_at?: string | null
           description?: string
           estimated_cost?: number | null
@@ -108,7 +121,9 @@ export type Database = {
           priority?: string
           reported_by?: string | null
           status?: string
+          technician_notes?: string | null
           title?: string
+          updated_at?: string
         }
         Relationships: [
           {
