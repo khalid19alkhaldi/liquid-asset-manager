@@ -35,7 +35,8 @@ export function buildingTypeLabel(t: string): string {
   return map[t] ?? t;
 }
 
-export function roleLabel(r: string): string {
+export function roleLabel(r: string | null | undefined): string {
+  if (!r) return "بانتظار الصلاحيات";
   const map: Record<string, string> = {
     admin: "مدير الصيانة العام",
     facility_manager: "مسؤول منشأة",
