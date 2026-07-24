@@ -88,6 +88,53 @@ CREATE TABLE public.maintenance_requests (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- 3.5 AUDIT LOG SYSTEM
+CREATE TABLE public.audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  performer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  performer_name TEXT,
+  action_type TEXT NOT NULL, -- e.g., 'UPDATE_PRICE', 'APPROVE_REQUEST'
+  entity_type TEXT NOT NULL, -- e.g., 'price_catalog', 'maintenance_requests'
+  entity_id UUID NOT NULL,
+  old_values JSONB,
+  new_values JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Function to handle automated logging
+CREATE OR REPLACE FUNCTION public.log_operation()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_performer_id UUID;
+    v_performer_name TEXT;
+BEGIN
+    v_performer_id := auth.uid();
+    SELECT full_name INTO v_performer_name FROM public.profiles WHERE id = v_performer_id;
+
+    IF (TG_OP = 'UPDATE') THEN
+        INSERT INTO public.audit_logs (
+            performer_id, performer_name, action_type, entity_type, entity_id, old_values, new_values
+        ) VALUES (
+            v_performer_id,
+            v_performer_name,
+            'UPDATE',
+            TG_TABLE_NAME,
+            OLD.id,
+            to_jsonb(OLD),
+            to_jsonb(NEW)
+        );
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Apply triggers to target tables
+CREATE TRIGGER trg_audit_requests AFTER UPDATE ON public.maintenance_requests
+    FOR EACH ROW EXECUTE FUNCTION public.log_operation();
+
+CREATE TRIGGER trg_audit_prices AFTER UPDATE ON public.price_catalog
+    FOR EACH ROW EXECUTE FUNCTION public.log_operation();
+
 -- 4. MASTER PERMISSIONS & RLS (OPEN FOR RELIABILITY)
 DO $$
 DECLARE

@@ -19,7 +19,9 @@ import {
   Clock,
   ArrowUpRight,
   Filter,
-  Search
+  Search,
+  History,
+  FileSearch
 } from "lucide-react";
 import {
   AreaChart,
@@ -61,6 +63,19 @@ export function AdminView({ externalTab = "stats" }: AdminViewProps) {
       const { data: profiles, error } = await supabase.from("profiles").select("*, user_roles(role)");
       if (error) throw error;
       return profiles ?? [];
+    },
+  });
+
+  const { data: auditLogs = [], isLoading: isLoadingAudit } = useQuery({
+    queryKey: ["audit-logs"],
+    enabled: externalTab === "audit",
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("audit_logs")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
     },
   });
 
@@ -300,6 +315,69 @@ export function AdminView({ externalTab = "stats" }: AdminViewProps) {
               {allUsers.map((u: any) => (
                 <UserAdminCard key={u.id} user={u} onUpdateRole={updateUserRole} onDelete={deleteUser} />
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {externalTab === "audit" && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="mb-10 text-right">
+            <h2 className="section-title">سجل تدقيق العمليات</h2>
+            <p className="mt-2 text-xs font-bold text-slate-400 pr-1">مراقبة كافة التغييرات الحساسة في النظام (الأسعار، الاعتمادات، الحالات).</p>
+          </div>
+
+          {isLoadingAudit ? (
+            <LoadingState label="جارٍ استرجاع سجل العمليات..." />
+          ) : (
+            <div className="space-y-4">
+              {auditLogs.map((log: any) => (
+                <div key={log.id} className="glass-card p-6 border-r-4 border-r-slate-200">
+                  <div className="flex items-start justify-between flex-row-reverse">
+                    <div className="flex gap-4 flex-row-reverse">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 border border-slate-100">
+                        <History className="h-6 w-6" />
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center gap-2 flex-row-reverse">
+                          <span className="font-black text-slate-900">{log.performer_name || "مستخدم غير معرف"}</span>
+                          <div className="h-1 w-1 rounded-full bg-slate-200" />
+                          <span className="text-[10px] font-bold text-primary uppercase bg-primary/5 px-2 py-0.5 rounded-lg">
+                            {log.action_type === 'UPDATE' ? 'تعديل بيانات' : log.action_type}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex items-center gap-2 flex-row-reverse text-[11px] font-bold text-slate-400">
+                          <Clock className="h-3 w-3" />
+                          <span>{new Intl.DateTimeFormat('ar-SA', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(log.created_at))}</span>
+                          <div className="h-1 w-1 rounded-full bg-slate-200" />
+                          <span>الجدول: {log.entity_type}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-rose-50/30 p-4 border border-rose-100/50">
+                      <div className="mb-2 text-[9px] font-black text-rose-400 uppercase tracking-widest">البيانات السابقة</div>
+                      <pre className="text-[10px] font-bold text-slate-500 overflow-x-auto text-right dir-ltr whitespace-pre-wrap">
+                        {JSON.stringify(log.old_values, null, 2)}
+                      </pre>
+                    </div>
+                    <div className="rounded-2xl bg-emerald-50/30 p-4 border border-emerald-100/50">
+                      <div className="mb-2 text-[9px] font-black text-emerald-400 uppercase tracking-widest">البيانات الجديدة</div>
+                      <pre className="text-[10px] font-bold text-slate-500 overflow-x-auto text-right dir-ltr whitespace-pre-wrap">
+                        {JSON.stringify(log.new_values, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {auditLogs.length === 0 && (
+                <div className="rounded-[2.5rem] border-2 border-dashed border-slate-100 p-20 text-center">
+                  <FileSearch className="mx-auto mb-4 h-12 w-12 text-slate-200" />
+                  <div className="font-bold text-slate-300">لم يتم تسجيل أي عمليات تدقيق بعد.</div>
+                </div>
+              )}
             </div>
           )}
         </div>

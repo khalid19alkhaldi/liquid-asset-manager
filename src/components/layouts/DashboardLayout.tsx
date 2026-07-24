@@ -35,6 +35,7 @@ export function DashboardLayout({ children, userName, role, activeTab, onTabChan
     { id: "stats", label: "نظرة عامة", icon: LayoutDashboard },
     { id: "requests", label: "البلاغات النشطة", icon: ClipboardList },
     { id: "users", label: "الموظفين", icon: Users, adminOnly: true },
+    { id: "audit", label: "سجل العمليات", icon: ClipboardList, adminOnly: true },
     { id: "buildings", label: "الأصول والمرافق", icon: Building2 },
   ];
 

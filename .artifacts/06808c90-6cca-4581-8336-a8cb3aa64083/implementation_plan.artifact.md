@@ -1,39 +1,47 @@
-# Implementation Plan - Data Restoration & UI Robustness
+# Implementation Plan - Operation Audit Log System
 
-This plan fixes the empty "Facility" dropdown and ensures the system data is fully restored after the recent schema resets.
-
-## Problem Analysis
-
-The recent "Auth Rebirth" focused on account tables (`profiles`, `user_roles`) but likely left the business data tables (`buildings`, `facilities`, `price_catalog`) in an inconsistent state or completely empty. Without data in the `facilities` table linked to the current buildings, the dropdowns will appear empty.
+This plan establishes a comprehensive auditing system to track every critical change within the platform, specifically focusing on pricing updates and maintenance request approvals.
 
 ## Proposed Changes
 
-### 1. Unified Database Restoration
+### 1. Database Infrastructure (Logging Engine)
 
 #### [MODIFY] [99999999999999_full_access.sql](file:///C:/Projects/liquid-asset-manager-main/supabase/migrations/99999999999999_full_access.sql)
-- **Re-create all tables**: Ensure `buildings`, `facilities`, `price_catalog`, and `maintenance_requests` exist with correct structures.
-- **Master Seed Data**:
-    - Insert the 5 primary buildings.
-    - **Crucial**: Automatically link a comprehensive set of facilities (AC, Elevators, Fire Systems, etc.) to **every** building.
-    - Populate the `price_catalog` with standard maintenance rates.
-- **Universal Access**: Re-apply the `Master_Access` policy to all tables to ensure no RLS blocking.
+- **New Table**: `public.audit_logs`
+    - `id` (UUID)
+    - `performer_id` (UUID, refs profiles)
+    - `performer_name` (Text, for quick reference)
+    - `action_type` (Text: e.g., 'PRICE_UPDATE', 'STATUS_CHANGE')
+    - `entity_type` (Text: e.g., 'maintenance_requests', 'price_catalog')
+    - `entity_id` (UUID)
+    - `old_values` (JSONB)
+    - `new_values` (JSONB)
+    - `created_at` (TIMESTAMPTZ)
+- **Audit Function**: A Postgres function `public.log_operation()` that automatically detects changes in specific tables and records them.
+- **Triggers**:
+    - Trigger on `maintenance_requests` (log when status or actual_cost changes).
+    - Trigger on `price_catalog` (log when standard_price changes).
 
-### 2. Frontend Dropdown Fixes
-
-#### [MODIFY] [FacilityManagerView.tsx](file:///C:/Projects/liquid-asset-manager-main/src/features/dashboards/FacilityManagerView.tsx)
-- Add a loading and empty state check for the facilities dropdown.
-- Simplify the `select` rendering to ensure browser compatibility.
+### 2. Frontend - Audit Management Interface
 
 #### [MODIFY] [AdminView.tsx](file:///C:/Projects/liquid-asset-manager-main/src/features/dashboards/AdminView.tsx)
-- Mirror the improvements in the `NewRequestForm` to ensure consistency.
+- **New Tab**: "سجل التدقيق" (Audit Log).
+- **Audit Feed**: A chronological list of all system actions.
+- **Detail View**: Visual comparison between "Old Data" and "New Data" (e.g., "السعر القديم: 150 -> السعر الجديد: 200").
+
+### 3. Layout Integration
+
+#### [MODIFY] [DashboardLayout.tsx](file:///C:/Projects/liquid-asset-manager-main/src/components/layouts/DashboardLayout.tsx)
+- Add "سجل العمليات" (Audit Logs) to the sidebar for Admins.
 
 ## Verification Plan
 
 ### Manual Verification
-1. **Run the new SQL script**: Copy and paste the updated master SQL into Supabase.
-2. **Refresh the App**: Log in as a Facility Manager.
-3. **Test "New Request"**:
-    - Click "فتح بلاغ صيانة جديد".
-    - Click the "المرفق" dropdown.
-    - Verify that all facilities (التكييف، المصاعد، إلخ) are visible and selectable.
-4. **Test "Price Calculation"**: Select a facility and verify that the "Estimated Cost" (التكلفة التقديرية) appears correctly based on the new seed data.
+1. Log in as an Admin.
+2. Change the status of a maintenance request to "Approved".
+3. Update the price of a service in the catalog (if a UI exists) or via SQL.
+4. Open the "Audit Log" tab.
+5. Verify that both actions appear with:
+    - Your name.
+    - The exact time.
+    - What was changed (Old vs New).

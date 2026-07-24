@@ -1,5 +1,5 @@
-- [x] Overhaul `FacilityManagerView.tsx` with SaaS Metric Cards and Building Identity
-- [x] Redesign `NewRequestForm` within `FacilityManagerView.tsx` to match the SaaS modal style
-- [x] Implement data visualization (Budget performance) for the specific building
-- [x] Final visual polish and RTL consistency verification
-- [ ] Push changes to GitHub
+- [ ] Create `audit_logs` table and logging triggers in SQL
+- [ ] Implement the "Audit Log" tab in `AdminView.tsx`
+- [ ] Connect the Sidebar to the new Audit view
+- [ ] Fix the dropdown visibility issue (from the previous request)
+- [ ] Push to GitHub and verify
