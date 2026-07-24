@@ -290,25 +290,21 @@ function NewRequestForm({ buildingId, onClose, onCreated }: { buildingId: string
               required
               value={facilityId}
               onChange={(e) => setFacilityId(e.target.value)}
-              className="glass-input h-14 font-black text-sm"
-              style={{ appearance: 'auto' }}
+              className="glass-input h-14 font-black text-sm bg-white"
             >
               <option value="">اختر المرفق...</option>
-              <optgroup label="مرافق داخلية">
-                {facilities.filter((f: any) => f.category === "interior").map((f: any) => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </optgroup>
-              <optgroup label="مرافق خارجية">
-                {facilities.filter((f: any) => f.category === "exterior").map((f: any) => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </optgroup>
+              {facilities.map((f: any) => (
+                <option key={f.id} value={f.id}>{f.name} ({f.category === 'interior' ? 'داخلي' : 'خارجي'})</option>
+              ))}
             </select>
           </div>
           <div className="space-y-3 text-right">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pr-1">مستوى الأولوية</label>
-            <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="glass-input h-14 font-black text-sm" style={{ appearance: 'auto' }}>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as any)}
+              className="glass-input h-14 font-black text-sm bg-white"
+            >
               <option value="low">عادية</option>
               <option value="medium">متوسطة</option>
               <option value="high">عالية (تتطلب تدخل)</option>

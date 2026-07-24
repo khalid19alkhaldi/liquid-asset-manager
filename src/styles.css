@@ -107,9 +107,13 @@
 }
 
 @utility glass-input {
-  @apply w-full h-12 px-5 rounded-2xl border border-slate-200 bg-white/50 backdrop-blur-sm transition-all;
+  @apply w-full h-12 px-5 rounded-2xl border border-slate-200 bg-white/50 transition-all;
   &:focus {
     @apply ring-4 ring-primary/10 border-primary bg-white outline-none;
+  }
+  /* Remove backdrop-blur from select to fix OS dropdown rendering issues */
+  &:not(select) {
+    @apply backdrop-blur-sm;
   }
 }
 

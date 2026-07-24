@@ -633,25 +633,23 @@ function NewRequestForm({ buildingId, onClose, onCreated, buildings }: any) {
 
       <form onSubmit={submit} className="space-y-8 p-10">
         <div className="grid gap-8 sm:grid-cols-2">
-          <div className="space-y-3">
+          <div className="space-y-3 text-right">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pr-1">المبنى / الموقع</label>
             <select
               value={selectedBld}
               onChange={(e) => { setSelectedBld(e.target.value); setFacilityId(""); }}
-              className="glass-input h-14 font-black text-sm"
-              style={{ appearance: 'auto' }}
+              className="glass-input h-14 font-black text-sm bg-white"
             >
               {buildings.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 text-right">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pr-1">المرفق المتضرر</label>
             <select
               required
               value={facilityId}
               onChange={(e) => setFacilityId(e.target.value)}
-              className="glass-input h-14 font-black text-sm"
-              style={{ appearance: 'auto' }}
+              className="glass-input h-14 font-black text-sm bg-white"
             >
               <option value="">اختر المرفق...</option>
               {facilities.map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -660,13 +658,17 @@ function NewRequestForm({ buildingId, onClose, onCreated, buildings }: any) {
         </div>
 
         <div className="grid gap-8 sm:grid-cols-2">
-          <div className="space-y-3">
+          <div className="space-y-3 text-right">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pr-1">عنوان البلاغ</label>
             <input required value={title} onChange={(e) => setTitle(e.target.value)} className="glass-input h-14 font-black text-sm" placeholder="مثال: عطل في مكيّف القاعة" />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 text-right">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pr-1">مستوى الأولوية</label>
-            <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="glass-input h-14 font-black text-sm" style={{ appearance: 'auto' }}>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as any)}
+              className="glass-input h-14 font-black text-sm bg-white"
+            >
               <option value="low">عادية</option>
               <option value="medium">متوسطة</option>
               <option value="high">عالية (تتطلب تدخل)</option>
