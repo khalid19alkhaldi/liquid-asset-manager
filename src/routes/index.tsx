@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Building2, ClipboardList, ShieldCheck, Wallet2, Sparkles } from "lucide-react";
+import jubailLogo from "@/assets/jubail-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
