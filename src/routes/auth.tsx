@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ShieldCheck, UserPlus, LogIn, Mail, Lock, User, Building, Wrench } from "lucide-react";
+import jubailLogo from "@/assets/jubail-logo.png.asset.json";
 import { roleLabel } from "@/lib/format";
 
 export const Route = createFileRoute("/auth")({
