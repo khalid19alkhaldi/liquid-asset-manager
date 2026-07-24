@@ -63,7 +63,7 @@ export function AdminView() {
   }
 
   async function updateUserRole(userId: string, newRole: string) {
-    const { error } = await supabase.from("user_roles").upsert({ user_id: userId, role: newRole }, { onConflict: "user_id, role" });
+    const { error } = await supabase.from("user_roles").upsert({ user_id: userId, role: newRole as "admin" | "facility_manager" | "technician" }, { onConflict: "user_id, role" });
     if (error) toast.error(error.message);
     else {
       toast.success("تم تحديث الدور بنجاح");
@@ -411,7 +411,7 @@ function NewRequestForm({ buildingId, onClose, onCreated }: { buildingId: string
         title,
         description,
         priority,
-        reported_by: auth.user?.id,
+        reported_by: auth.user?.id ?? "",
         estimated_cost: estimate ?? 0,
       });
       if (error) throw error;

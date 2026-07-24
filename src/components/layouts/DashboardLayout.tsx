@@ -84,7 +84,7 @@ export function DashboardLayout({ children, userName, role }: DashboardLayoutPro
               </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-black text-white">{userName}</div>
-                <div className="text-[10px] font-bold text-white/50 uppercase tracking-tighter">{roleLabel(role)}</div>
+                <div className="text-[10px] font-bold text-white/50 uppercase tracking-tighter">{role ? roleLabel(role) : ""}</div>
               </div>
             </div>
             <button
