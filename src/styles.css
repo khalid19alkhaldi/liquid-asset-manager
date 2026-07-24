@@ -26,7 +26,7 @@
   --color-border: var(--border);
   --color-glass: var(--glass);
 
-  --font-sans: "Readex Pro", "Cairo", system-ui, sans-serif;
+  --font-sans: "Inter", "Readex Pro", "Cairo", system-ui, sans-serif;
 }
 
 :root {
