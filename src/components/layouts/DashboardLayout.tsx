@@ -7,13 +7,13 @@ import {
   Users,
   Building2,
   LogOut,
-  ShieldCheck,
   ChevronLeft,
   Bell,
   Search,
   Command
 } from "lucide-react";
 import { roleLabel } from "@/lib/format";
+import jubailLogo from "@/assets/jubail-logo.png.asset.json";
 
 interface DashboardLayoutProps {
   children: ReactNode;
