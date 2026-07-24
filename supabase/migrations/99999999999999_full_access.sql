@@ -99,3 +99,27 @@ GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO authenticated, anon;
 
 -- Force confirm all current and future users
 UPDATE auth.users SET email_confirmed_at = now();
+
+-- 6. ADMIN DELETE USER FUNCTION
+-- Allows an Admin to delete a user from auth.users (Cascades to profiles/roles)
+CREATE OR REPLACE FUNCTION public.delete_user_by_admin(target_user_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER -- Runs with superuser privileges to access auth.users
+SET search_path = public
+AS $$
+BEGIN
+    -- Check if the person calling this is an Admin
+    IF NOT EXISTS (
+        SELECT 1 FROM public.user_roles
+        WHERE user_id = auth.uid() AND role = 'admin'
+    ) THEN
+        RAISE EXCEPTION 'غير مصرح لك بحذف المستخدمين. يجب أن تكون مديراً عاماً.';
+    END IF;
+
+    -- Delete the user from the auth system
+    DELETE FROM auth.users WHERE id = target_user_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.delete_user_by_admin(UUID) TO authenticated;

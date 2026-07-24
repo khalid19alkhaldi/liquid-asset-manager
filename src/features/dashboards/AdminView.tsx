@@ -6,7 +6,7 @@ import { StatusPill, PriorityPill } from "@/components/StatusPill";
 import { formatSAR, buildingTypeLabel, roleLabel } from "@/lib/format";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Building2, Filter, Plus, Users, LayoutDashboard, ClipboardList, ShieldAlert } from "lucide-react";
+import { Building2, Filter, Plus, Users, LayoutDashboard, ClipboardList, ShieldAlert, Trash2 } from "lucide-react";
 
 export function AdminView() {
   const qc = useQueryClient();
@@ -56,6 +56,20 @@ export function AdminView() {
     else {
       toast.success("تم تحديث الدور بنجاح");
       qc.invalidateQueries({ queryKey: ["admin-users"] });
+    }
+  }
+
+  async function deleteUser(userId: string, fullName: string) {
+    if (!confirm(`هل أنت متأكد من حذف حساب الموظف "${fullName}"؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
+
+    try {
+      const { error } = await supabase.rpc('delete_user_by_admin', { target_user_id: userId });
+      if (error) throw error;
+
+      toast.success("تم حذف الحساب بنجاح");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    } catch (err: any) {
+      toast.error(err.message || "فشل حذف الحساب");
     }
   }
 
@@ -235,6 +249,14 @@ export function AdminView() {
                       <option value="facility_manager">مسؤول منشأة</option>
                       <option value="technician">فني صيانة</option>
                     </select>
+
+                    <button
+                      onClick={() => deleteUser(u.id, u.full_name)}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                      title="حذف الحساب"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
                   </div>
                 </div>
               </GlassCard>

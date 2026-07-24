@@ -1,4 +1,4 @@
-- [ ] Rebuild Database Auth Logic (`99999999999999_full_access.sql`)
-- [ ] Rebuild Frontend Auth UI and Logic (`src/routes/auth.tsx`)
-- [ ] Optimize Session Hook (`src/hooks/useAuth.ts`)
-- [ ] Push to GitHub and provide final instructions
+- [ ] Add `delete_user_by_admin` function to SQL migration
+- [ ] Update `AdminView.tsx` with user deletion UI and logic
+- [ ] Push changes to GitHub
+- [ ] Provide final SQL to the user

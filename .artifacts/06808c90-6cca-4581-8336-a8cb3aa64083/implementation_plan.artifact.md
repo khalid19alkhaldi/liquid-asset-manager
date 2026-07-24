@@ -1,39 +1,28 @@
-# Implementation Plan - Accounts System Rebuild
+# Implementation Plan - Admin User Management (Delete Functionality)
 
-The user requested to "delete everything related to accounts and rebuild them from scratch" because the previous "Full Access" fixes didn't result in a working Admin dashboard for them.
-
-This plan provides a clean-slate approach to ensure that:
-1. Every user has a `profile`.
-2. Every user is automatically assigned the `admin` role (for now, to ensure full access).
-3. The database is the "Single Source of Truth" for these assignments.
-
-## User Action Required
-
-> [!IMPORTANT]
-> This is a destructive operation for metadata (profiles/roles), but it is necessary to fix the "No Role" issue permanently.
-
-1. **Run the Reconstruction SQL**: I will provide a script that drops the old `profiles` and `user_roles` tables and re-creates them perfectly.
-2. **Refresh and Sign In**: After running the script, simply refresh the app. Your existing account will be automatically "re-linked" and assigned an Admin role by the script.
+This plan adds the ability for the General Manager (Admin) to view all registered accounts and delete them directly from the application. This ensures that when an employee leaves, their access can be revoked completely.
 
 ## Proposed Changes
 
-### Database Reconstruction
+### Database Logic
 
 #### [MODIFY] [99999999999999_full_access.sql](file:///C:/Projects/liquid-asset-manager-main/supabase/migrations/99999999999999_full_access.sql)
-- **DROP** existing `user_roles` and `profiles` tables.
-- **RE-CREATE** them with clean definitions.
-- **MIGRATE** all existing `auth.users` into the new tables immediately.
-- **RE-ESTABLISH** a robust "Auto-Admin" trigger for all future signups.
-- **FORCE** RLS to be completely open for testing purposes.
+- **Add Admin Delete Function**: Create a Postgres function `delete_user_by_admin(target_user_id UUID)` marked as `SECURITY DEFINER`.
+    - This function allows an authorized Admin to delete a user from the `auth.users` table.
+    - Since `profiles` and `user_roles` have `ON DELETE CASCADE`, all associated data will be wiped automatically.
 
-### Frontend Logic
+### Admin Interface
 
-#### [MODIFY] [useSession.ts](file:///C:/Projects/liquid-asset-manager-main/src/hooks/useSession.ts)
-- Add extra safety checks to ensure the role is correctly parsed even if the database returns an array.
+#### [MODIFY] [AdminView.tsx](file:///C:/Projects/liquid-asset-manager-main/src/features/dashboards/AdminView.tsx)
+- **Add Delete Button**: Add a "Delete User" (حذف الحساب) button to each user card in the "Users Management" tab.
+- **Confirmation Logic**: Implement a `window.confirm` check to ensure the Admin actually wants to delete the account.
+- **RPC Call**: Use `supabase.rpc('delete_user_by_admin', ...)` to trigger the deletion.
 
 ## Verification Plan
 
 ### Manual Verification
-- Run the SQL script.
-- Check the `public.user_roles` table in Supabase to see if your user ID is present with the 'admin' role.
-- Refresh the app. The dashboard should now show the Admin View.
+1. Sign in as the primary Admin.
+2. Go to the **إدارة الموظفين** (Users Management) tab.
+3. Identify a test account.
+4. Click the "Delete" icon/button.
+5. Confirm that the user disappears from the list and can no longer log in.
