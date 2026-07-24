@@ -1,5 +1,5 @@
-- [ ] Lift `activeTab` state to `dashboard.tsx`
-- [ ] Connect Sidebar in `DashboardLayout.tsx` to the state
-- [ ] Refactor `AdminView.tsx` to use the lifted state and fix dropdowns
-- [ ] Tweak CSS for better element interaction
-- [ ] Push changes and verify
+- [x] Overhaul `FacilityManagerView.tsx` with SaaS Metric Cards and Building Identity
+- [x] Redesign `NewRequestForm` within `FacilityManagerView.tsx` to match the SaaS modal style
+- [x] Implement data visualization (Budget performance) for the specific building
+- [x] Final visual polish and RTL consistency verification
+- [ ] Push changes to GitHub
