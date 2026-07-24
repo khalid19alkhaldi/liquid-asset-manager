@@ -109,11 +109,4 @@ function Landing() {
     </div>
   );
 }
-      </main>
 
-      <footer className="mx-auto max-w-7xl px-6 pb-8 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} جمعية الجبيل — بوابة إدارة وصيانة الأصول
-      </footer>
-    </div>
-  );
-}
