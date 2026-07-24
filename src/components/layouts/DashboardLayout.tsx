@@ -104,7 +104,7 @@ export function DashboardLayout({ children, userName, role, activeTab, onTabChan
                 </div>
                 <div className="min-w-0 flex-1 text-right">
                   <div className="truncate text-xs font-black text-slate-900">{userName}</div>
-                  <div className="mt-0.5 text-[9px] font-bold text-slate-400 uppercase tracking-tight">{roleLabel(role)}</div>
+                  <div className="mt-0.5 text-[9px] font-bold text-slate-400 uppercase tracking-tight">{roleLabel(role ?? undefined)}</div>
                 </div>
               </div>
               <button
