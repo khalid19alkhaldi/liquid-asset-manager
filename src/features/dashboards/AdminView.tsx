@@ -26,11 +26,19 @@ export function AdminView() {
     queryFn: async () => (await supabase.from("maintenance_requests").select("*, building:buildings(name), facility:facilities(name)").order("created_at", { ascending: false })).data ?? [],
   });
 
-  const { data: allUsers = [] } = useQuery({
+  const { data: allUsers = [], isLoading: isLoadingUsers, error: usersError } = useQuery({
     queryKey: ["admin-users"],
     enabled: activeTab === "users",
     queryFn: async () => {
-      const { data: profiles } = await supabase.from("profiles").select("*, roles:user_roles(role)");
+      console.log("Fetching users...");
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("*, user_roles(role)");
+
+      if (error) {
+        console.error("Supabase error fetching users:", error);
+        throw error;
+      }
       return profiles ?? [];
     },
   });
@@ -215,53 +223,74 @@ export function AdminView() {
 
       {activeTab === "users" && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="mb-6">
+          <div className="mb-6 text-right">
             <h2 className="text-xl font-black text-slate-800 dark:text-white">إدارة الحسابات والأدوار</h2>
             <p className="text-sm text-slate-500">يمكنك هنا تغيير صلاحيات الموظفين وربطهم بالأدوار المناسبة.</p>
           </div>
 
-          <div className="grid gap-3">
-            {allUsers.map((u: any) => (
-              <GlassCard key={u.id}>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-                      <Users className="h-6 w-6 text-slate-500" />
+          {isLoadingUsers ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+              <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-500" />
+              <div className="font-bold">جارٍ جلب قائمة الموظفين...</div>
+            </div>
+          ) : usersError ? (
+            <div className="rounded-2xl border border-red-100 bg-red-50 p-10 text-center">
+              <ShieldAlert className="mx-auto mb-4 h-12 w-12 text-red-500" />
+              <h3 className="mb-2 font-black text-red-900">حدث خطأ أثناء جلب البيانات</h3>
+              <p className="text-sm text-red-700">يرجى التأكد من تشغيل كود SQL الأخير وتحديث الصفحة.</p>
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {allUsers.map((u: any) => (
+                <GlassCard key={u.id}>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                        <Users className="h-6 w-6 text-slate-500" />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-800 dark:text-white">{u.full_name || 'بدون اسم'}</div>
+                        <div className="text-xs text-slate-500">{u.email}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-black text-slate-800 dark:text-white">{u.full_name}</div>
-                      <div className="text-xs text-slate-500">{u.email}</div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="mr-4 text-right">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase">الدور الحالي</div>
+                        <div className="text-sm font-bold text-indigo-600">
+                          {u.user_roles?.[0]?.role ? roleLabel(u.user_roles[0].role) : 'بدون دور'}
+                        </div>
+                      </div>
+                      <select
+                        onChange={(e) => updateUserRole(u.id, e.target.value)}
+                        defaultValue={u.user_roles?.[0]?.role || ""}
+                        className="glass-input h-10 text-sm"
+                      >
+                        <option value="">اختر دوراً...</option>
+                        <option value="admin">مدير عام</option>
+                        <option value="facility_manager">مسؤول منشأة</option>
+                        <option value="technician">فني صيانة</option>
+                      </select>
+
+                      <button
+                        onClick={() => deleteUser(u.id, u.full_name)}
+                        className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                        title="حذف الحساب"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="text-right mr-4">
-                      <div className="text-[10px] font-bold text-slate-400">الدور الحالي</div>
-                      <div className="text-sm font-bold text-indigo-600">{u.roles?.[0]?.role ? roleLabel(u.roles[0].role) : 'بدون دور'}</div>
-                    </div>
-                    <select
-                      onChange={(e) => updateUserRole(u.id, e.target.value)}
-                      defaultValue={u.roles?.[0]?.role || ""}
-                      className="glass-input h-10 text-sm"
-                    >
-                      <option value="">اختر دوراً...</option>
-                      <option value="admin">مدير عام</option>
-                      <option value="facility_manager">مسؤول منشأة</option>
-                      <option value="technician">فني صيانة</option>
-                    </select>
-
-                    <button
-                      onClick={() => deleteUser(u.id, u.full_name)}
-                      className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white"
-                      title="حذف الحساب"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  </div>
+                </GlassCard>
+              ))}
+              {allUsers.length === 0 && (
+                <div className="rounded-2xl border border-slate-100 bg-white/50 p-10 text-center dark:bg-slate-900/50">
+                  <Users className="mx-auto mb-4 h-12 w-12 text-slate-300" />
+                  <div className="font-bold text-slate-500">لا يوجد موظفون مسجلون حالياً في النظام.</div>
                 </div>
-              </GlassCard>
-            ))}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

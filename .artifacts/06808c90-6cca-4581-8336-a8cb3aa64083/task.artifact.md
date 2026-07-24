@@ -1,4 +1,4 @@
-- [ ] Add `delete_user_by_admin` function to SQL migration
-- [ ] Update `AdminView.tsx` with user deletion UI and logic
-- [ ] Push changes to GitHub
-- [ ] Provide final SQL to the user
+- [ ] Update `AdminView.tsx` to handle loading/error states and improve the users query.
+- [ ] Refine SQL Schema to ensure relationships are clear for data fetching.
+- [ ] Push changes to GitHub.
+- [ ] Provide final SQL to the user to ensure database alignment.
