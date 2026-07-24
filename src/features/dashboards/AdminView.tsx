@@ -7,21 +7,24 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
   Building2,
-  Filter,
   Plus,
   Users,
-  PieChart,
   ClipboardList,
   ShieldAlert,
   Trash2,
   TrendingUp,
   Wallet,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from "lucide-react";
+import { GlassCard } from "@/components/GlassCard";
 
-export function AdminView() {
+interface AdminViewProps {
+  externalTab?: string;
+}
+
+export function AdminView({ externalTab = "stats" }: AdminViewProps) {
   const qc = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"stats" | "requests" | "users">("stats");
   const [filterBuilding, setFilterBuilding] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
@@ -39,7 +42,7 @@ export function AdminView() {
 
   const { data: allUsers = [], isLoading: isLoadingUsers, error: usersError } = useQuery({
     queryKey: ["admin-users"],
-    enabled: activeTab === "users",
+    enabled: externalTab === "users",
     queryFn: async () => {
       const { data: profiles, error } = await supabase.from("profiles").select("*, user_roles(role)");
       if (error) throw error;
@@ -90,32 +93,7 @@ export function AdminView() {
 
   return (
     <div className="space-y-8">
-      {/* Sub-Navigation for sections */}
-      <div className="flex gap-4 border-b border-slate-200 dark:border-slate-800">
-        {[
-          { id: "stats", label: "نظرة عامة", icon: PieChart },
-          { id: "requests", label: "إدارة البلاغات", icon: ClipboardList },
-          { id: "users", label: "شؤون الموظفين", icon: Users },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`relative flex items-center gap-2 pb-4 text-sm font-bold transition-all ${
-              activeTab === tab.id
-                ? "text-primary dark:text-emerald-400"
-                : "text-slate-400 hover:text-slate-600"
-            }`}
-          >
-            <tab.icon className="h-4 w-4" />
-            {tab.label}
-            {activeTab === tab.id && (
-              <div className="absolute bottom-0 left-0 h-0.5 w-full bg-primary dark:bg-emerald-400 rounded-full" />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === "stats" && (
+      {externalTab === "stats" && (
         <div className="space-y-8">
           {/* Executive Stats Grid */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -147,7 +125,7 @@ export function AdminView() {
 
           {/* Budget Overview Section */}
           <div className="inst-card overflow-hidden">
-            <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4 dark:border-slate-800 dark:bg-slate-900/50">
+            <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4 dark:border-slate-800 dark:bg-slate-900/50 text-right">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white">
                   <Wallet className="h-5 w-5" />
@@ -160,13 +138,13 @@ export function AdminView() {
             </div>
             <div className="p-8">
               <BudgetBar total={totalBudget} spent={totalSpent} label="المجموع الكلي المعتمد" />
-              <div className="mt-6 flex gap-8">
-                <div>
+              <div className="mt-6 flex flex-row-reverse justify-end gap-8">
+                <div className="text-right">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">إجمالي المصروف</div>
                   <div className="text-xl font-black text-secondary">{formatSAR(totalSpent)}</div>
                 </div>
                 <div className="h-10 w-px bg-slate-100 dark:bg-slate-800" />
-                <div>
+                <div className="text-right">
                   <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">المتبقي المتوفر</div>
                   <div className="text-xl font-black text-primary">{formatSAR(totalBudget - totalSpent)}</div>
                 </div>
@@ -188,9 +166,9 @@ export function AdminView() {
                   <div
                     key={b.id}
                     onClick={() => { setSelectedBuildingId(b.id); setShowForm(true); }}
-                    className="inst-card inst-card-hover group cursor-pointer p-6"
+                    className="inst-card inst-card-hover group cursor-pointer p-6 text-right"
                   >
-                    <div className="mb-4 flex items-start justify-between">
+                    <div className="mb-4 flex items-start justify-between flex-row-reverse">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/5 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                         <Building2 className="h-6 w-6" />
                       </div>
@@ -209,7 +187,7 @@ export function AdminView() {
         </div>
       )}
 
-      {activeTab === "requests" && (
+      {(externalTab === "requests" || externalTab === "buildings") && (
         <div className="animate-in fade-in slide-in-from-bottom-2">
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <h2 className="section-title">سجل بلاغات الصيانة</h2>
@@ -230,28 +208,28 @@ export function AdminView() {
 
           <div className="space-y-4">
             {filtered.map((r: any) => (
-              <div key={r.id} className="inst-card overflow-hidden border-r-4 border-r-primary">
-                <div className="flex flex-wrap items-center justify-between gap-6 p-6">
+              <div key={r.id} className="inst-card overflow-hidden border-r-4 border-r-primary text-right">
+                <div className="flex flex-wrap items-center justify-between gap-6 p-6 flex-row-reverse">
                   <div className="min-w-0 flex-1">
-                    <div className="mb-2 flex items-center gap-3">
+                    <div className="mb-2 flex items-center gap-3 flex-row-reverse">
                       <span className="text-xs font-black text-slate-400 tabular-nums">#{r.id.slice(0, 5)}</span>
                       <h3 className="text-lg font-black text-secondary">{r.title}</h3>
                       <StatusPill status={r.status} />
                       <PriorityPill priority={r.priority} />
                     </div>
                     <p className="text-sm font-medium text-slate-500 line-clamp-2">{r.description}</p>
-                    <div className="mt-4 flex gap-6">
+                    <div className="mt-4 flex gap-6 flex-row-reverse">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
-                        <Building2 className="h-3.5 w-3.5" /> {r.building?.name}
+                         {r.building?.name} <Building2 className="h-3.5 w-3.5" />
                       </div>
                       <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
-                        <TrendingUp className="h-3.5 w-3.5" /> {r.facility?.name}
+                         {r.facility?.name} <TrendingUp className="h-3.5 w-3.5" />
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-8">
-                    <div className="text-left">
+                  <div className="flex items-center gap-8 flex-row-reverse">
+                    <div className="text-right">
                       <div className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">التكلفة المتوقعة</div>
                       <div className="text-xl font-black text-primary tabular-nums">{formatSAR(r.estimated_cost)}</div>
                     </div>
@@ -275,9 +253,9 @@ export function AdminView() {
         </div>
       )}
 
-      {activeTab === "users" && (
+      {externalTab === "users" && (
         <div className="animate-in fade-in slide-in-from-bottom-2">
-          <div className="mb-8">
+          <div className="mb-8 text-right">
             <h2 className="section-title">صلاحيات النظام</h2>
             <p className="mt-2 text-sm font-medium text-slate-400 pr-4">إدارة الوصول للموظفين وتغيير الأدوار الوظيفية داخل المنصة.</p>
           </div>
@@ -287,20 +265,20 @@ export function AdminView() {
           ) : (
             <div className="space-y-3">
               {allUsers.map((u: any) => (
-                <div key={u.id} className="inst-card p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                <div key={u.id} className="inst-card p-5 text-right">
+                  <div className="flex items-center justify-between flex-row-reverse">
+                    <div className="flex items-center gap-4 flex-row-reverse">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 font-black text-slate-400 border border-slate-100">
                         {u.full_name?.charAt(0) || 'U'}
                       </div>
-                      <div>
+                      <div className="text-right">
                         <div className="font-black text-secondary leading-tight">{u.full_name || 'موظف جديد'}</div>
                         <div className="text-xs font-bold text-slate-400 tabular-nums">{u.email}</div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <div className="text-left ml-6">
+                    <div className="flex items-center gap-4 flex-row-reverse">
+                      <div className="text-right ml-6">
                         <div className="text-[10px] font-bold uppercase text-slate-300">الصلاحية</div>
                         <div className="text-sm font-black text-primary">{u.user_roles?.[0]?.role ? roleLabel(u.user_roles[0].role) : 'معلق'}</div>
                       </div>
@@ -332,7 +310,7 @@ export function AdminView() {
       )}
 
       {showForm && selectedBuildingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md">
           <div className="w-full max-w-2xl animate-in zoom-in-95 duration-200">
             <NewRequestForm
               buildingId={selectedBuildingId}
@@ -355,8 +333,8 @@ function StatCard({ label, value, icon: Icon, color }: any) {
   };
 
   return (
-    <div className="inst-card p-6 border-b-4 border-b-transparent hover:border-b-primary">
-      <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${colors[color]}`}>
+    <div className="inst-card p-6 border-b-4 border-b-transparent hover:border-b-primary text-right">
+      <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${colors[color]} mr-0 ml-auto`}>
         <Icon className="h-6 w-6" />
       </div>
       <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</div>
@@ -384,7 +362,8 @@ function NewRequestForm({ buildingId, onClose, onCreated }: { buildingId: string
   const { data: facilities = [] } = useQuery({
     queryKey: ["facilities", buildingId],
     queryFn: async () => {
-      const { data } = await supabase.from("facilities").select("id, name, category, facility_type").eq("building_id", buildingId).order("category");
+      const { data, error } = await supabase.from("facilities").select("id, name, category, facility_type").eq("building_id", buildingId).order("category");
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -425,11 +404,11 @@ function NewRequestForm({ buildingId, onClose, onCreated }: { buildingId: string
   }
 
   return (
-    <div className="inst-card bg-white p-0 shadow-2xl">
-      <div className="flex items-center justify-between border-b border-slate-100 px-8 py-6">
+    <div className="inst-card bg-white p-0 shadow-2xl text-right">
+      <div className="flex items-center justify-between border-b border-slate-100 px-8 py-6 flex-row-reverse">
         <h3 className="text-xl font-black text-secondary">إضافة بلاغ صيانة جديد</h3>
         <button type="button" onClick={onClose} className="rounded-full bg-slate-50 p-2 text-slate-400 hover:text-slate-600 transition-colors">
-          <Trash2 className="h-5 w-5" />
+          <X className="h-5 w-5" />
         </button>
       </div>
 
@@ -437,23 +416,40 @@ function NewRequestForm({ buildingId, onClose, onCreated }: { buildingId: string
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-wider text-slate-500">المرفق</label>
-            <select required value={facilityId} onChange={(e) => setFacilityId(e.target.value)} className="glass-input font-bold text-sm">
+            <select
+              required
+              value={facilityId}
+              onChange={(e) => setFacilityId(e.target.value)}
+              className="glass-input font-bold text-sm bg-white"
+              style={{ appearance: 'auto' }}
+            >
               <option value="">اختر المرفق...</option>
-              <optgroup label="مرافق داخلية">
-                {facilities.filter((f: any) => f.category === "interior").map((f: any) => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </optgroup>
-              <optgroup label="مرافق خارجية">
-                {facilities.filter((f: any) => f.category === "exterior").map((f: any) => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </optgroup>
+              {facilities.length > 0 ? (
+                <>
+                  <optgroup label="مرافق داخلية">
+                    {facilities.filter((f: any) => f.category === "interior").map((f: any) => (
+                      <option key={f.id} value={f.id}>{f.name}</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="مرافق خارجية">
+                    {facilities.filter((f: any) => f.category === "exterior").map((f: any) => (
+                      <option key={f.id} value={f.id}>{f.name}</option>
+                    ))}
+                  </optgroup>
+                </>
+              ) : (
+                <option disabled>لا توجد مرافق مسجلة لهذا المبنى</option>
+              )}
             </select>
           </div>
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-wider text-slate-500">الأولوية</label>
-            <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="glass-input font-bold text-sm">
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as any)}
+              className="glass-input font-bold text-sm bg-white"
+              style={{ appearance: 'auto' }}
+            >
               <option value="low">عادية</option>
               <option value="medium">متوسطة</option>
               <option value="high">عالية</option>
@@ -473,13 +469,13 @@ function NewRequestForm({ buildingId, onClose, onCreated }: { buildingId: string
         </div>
 
         {selected && (
-          <div className="flex items-center justify-between rounded-2xl bg-primary/5 p-6 border border-primary/10">
+          <div className="flex items-center justify-between rounded-2xl bg-primary/5 p-6 border border-primary/10 flex-row-reverse">
             <div className="text-sm font-bold text-primary">التكلفة التقديرية للصيانة:</div>
             <div className="text-3xl font-black text-primary tabular-nums">{formatSAR(estimate ?? 0)}</div>
           </div>
         )}
 
-        <div className="flex gap-4 pt-2">
+        <div className="flex gap-4 pt-2 flex-row-reverse">
           <button disabled={loading} className="btn-primary h-14 flex-1 text-base font-black">
             {loading ? "جارٍ الحفظ..." : "تأكيد وإرسال البلاغ"}
           </button>

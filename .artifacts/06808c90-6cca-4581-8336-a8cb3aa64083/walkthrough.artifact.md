@@ -1,31 +1,29 @@
-# Walkthrough - Auth System Rebirth (V2)
+# Walkthrough - Institutional Redesign (HQ Jubail Style)
 
-I have completely rebuilt the authentication system to be more robust, aesthetically pleasing, and technically seamless.
+I have successfully transformed the platform into a professional, institutional-grade management system. The new design is inspired by the official **HQ Jubail** identity, focusing on forest green, gold, and clean grid layouts.
 
-## Key Improvements
+## Key Design Enhancements
 
-### 1. The "Silent Engine" (Database Trigger)
-- **Automated Everything**: The database now handles profile creation, role assignment, and building linking in a single atomic transaction.
-- **Foolproof Roles**: The first user to sign up is **always** forced to be an Admin, regardless of what they select. Subsequent users correctly get their chosen roles.
-- **Metadata-Driven**: No more race conditions between the frontend and backend.
+### 1. New Institutional Theme
+- **Color Palette**: Shifted to Forest Green (`#005a34`) as the primary color and Bronze Gold (`#c5a059`) for accents.
+- **Visual Style**: Replaced the semi-transparent "Glass" effect with clean, solid cards, crisp borders, and professional shadows.
+- **Typography**: Optimized "Readex Pro" and "Cairo" fonts for maximum readability and a high-end feel.
 
-### 2. Luxury Glass UI
-- **Redesigned Interface**: A modern, high-end Glassmorphism design with indigo and slate tones.
-- **Arabic First**: All labels, placeholders, and toasts are in clear, professional Arabic.
-- **Intuitive Workflows**: Clear visual separation between login and signup modes.
+### 2. Sidebar Navigation Layout
+- **Structure**: Introduced a permanent **Right-Side Sidebar** for RTL navigation.
+- **User Experience**: Easy access to "Overview," "Maintenance Requests," and "Employee Management."
+- **Responsive**: The layout adjusts seamlessly for mobile and desktop views.
 
-### 3. Real-Time Sync
-- **Live Updates**: If an Admin changes a user's role, the user's dashboard will update **immediately** without requiring a page refresh.
-- **Optimized Performance**: Faster initial loads and background data pre-fetching.
+### 3. Professional Admin Dashboard
+- **Executive Stats**: High-impact counters for active reports and budget completion rates.
+- **Financial Visualization**: Redesigned budget bars and financial summaries with the association's colors.
+- **Action-Oriented Grid**: Building cards now feature quick-action icons and clearer status indicators.
 
-## Final Activation Steps
-
-> [!IMPORTANT]
-> To ensure the new "Intelligence" is active, please follow these three steps:
-
-1. **Delete Existing Users**: Go to **Supabase > Authentication > Users** and wipe all existing test accounts.
-2. **Execute the Rebirth SQL**: Copy the code from [99999999999999_full_access.sql](file:///C:/Projects/liquid-asset-manager-main/supabase/migrations/99999999999999_full_access.sql) into your **SQL Editor** and click **Run**.
-3. **Sign Up Fresh**: Refresh your app and create your new primary Admin account.
+### 4. Reimagined Landing Page
+- **Hero Section**: A powerful institutional welcome with a clear Call-to-Action.
+- **Features Grid**: Modern icons and descriptive cards explaining the platform's core benefits.
+- **Clean Footer**: Professional branding consistent with the association's official web presence.
 
 ---
-The system is now at a production-ready standard.
+
+The platform now looks and feels like a dedicated, bespoke system built specifically for the **Charity Association for Quran Memorization in Jubail**.

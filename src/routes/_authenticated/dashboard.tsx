@@ -5,6 +5,7 @@ import { FacilityManagerView } from "@/features/dashboards/FacilityManagerView";
 import { AdminView } from "@/features/dashboards/AdminView";
 import { TechnicianView } from "@/features/dashboards/TechnicianView";
 import { ShieldAlert } from "lucide-react";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const { data, isLoading } = useAuth();
+  const [activeTab, setActiveTab] = useState("stats");
 
   if (isLoading || !data) {
     return (
@@ -34,7 +36,7 @@ function Dashboard() {
   const displayName = profile?.full_name ?? user?.email ?? "مستخدم";
 
   return (
-    <DashboardLayout userName={displayName} role={role}>
+    <DashboardLayout userName={displayName} role={role} activeTab={activeTab} onTabChange={setActiveTab}>
       {!role && (
         <div className="rounded-3xl border border-amber-100 bg-amber-50/50 p-10 text-center">
           <ShieldAlert className="mx-auto mb-4 h-16 w-16 text-amber-500" />
@@ -45,7 +47,7 @@ function Dashboard() {
         </div>
       )}
 
-      {role === "admin" && <AdminView />}
+      {role === "admin" && <AdminView externalTab={activeTab} />}
       {role === "facility_manager" && <FacilityManagerView profile={profile} />}
       {role === "technician" && <TechnicianView userId={user!.id} />}
     </DashboardLayout>

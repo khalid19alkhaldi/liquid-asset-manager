@@ -16,11 +16,12 @@ interface DashboardLayoutProps {
   children: ReactNode;
   userName?: string | null;
   role?: string | null;
+  activeTab: string;
+  onTabChange: (tab: any) => void;
 }
 
-export function DashboardLayout({ children, userName, role }: DashboardLayoutProps) {
+export function DashboardLayout({ children, userName, role, activeTab, onTabChange }: DashboardLayoutProps) {
   const navigate = useNavigate();
-  const location = useLocation();
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -28,10 +29,10 @@ export function DashboardLayout({ children, userName, role }: DashboardLayoutPro
   }
 
   const navItems = [
-    { id: "stats", label: "لوحة التحكم", icon: LayoutDashboard, path: "/dashboard" },
-    { id: "requests", label: "بلاغات الصيانة", icon: ClipboardList, path: "/dashboard" }, // Can be filtered via state in AdminView
-    { id: "users", label: "إدارة الموظفين", icon: Users, path: "/dashboard", adminOnly: true },
-    { id: "buildings", label: "المباني والمرافق", icon: Building2, path: "/dashboard" },
+    { id: "stats", label: "لوحة التحكم", icon: LayoutDashboard },
+    { id: "requests", label: "بلاغات الصيانة", icon: ClipboardList },
+    { id: "users", label: "إدارة الموظفين", icon: Users, adminOnly: true },
+    { id: "buildings", label: "المباني والمرافق", icon: Building2 },
   ];
 
   return (
@@ -51,16 +52,16 @@ export function DashboardLayout({ children, userName, role }: DashboardLayoutPro
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-4">
+          <nav className="flex-1 space-y-1 px-4 text-right">
             {navItems.map((item) => {
               if (item.adminOnly && role !== "admin") return null;
 
-              const isActive = location.pathname === item.path;
+              const isActive = activeTab === item.id;
               return (
-                <Link
+                <button
                   key={item.id}
-                  to={item.path as any}
-                  className={`flex items-center justify-between rounded-xl px-4 py-3.5 transition-all group ${
+                  onClick={() => onTabChange(item.id)}
+                  className={`flex w-full items-center justify-between rounded-xl px-4 py-3.5 transition-all group ${
                     isActive
                       ? "bg-white/10 text-white shadow-lg"
                       : "text-white/60 hover:bg-white/5 hover:text-white"
@@ -71,15 +72,15 @@ export function DashboardLayout({ children, userName, role }: DashboardLayoutPro
                     <span className="text-sm font-bold">{item.label}</span>
                   </div>
                   {isActive && <ChevronLeft className="h-4 w-4 text-gold" />}
-                </Link>
+                </button>
               );
             })}
           </nav>
 
           {/* User Profile Summary */}
-          <div className="m-4 rounded-2xl bg-black/10 p-5 backdrop-blur-sm">
+          <div className="m-4 rounded-2xl bg-black/10 p-5 backdrop-blur-sm text-right">
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gold text-white font-black shadow-lg">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gold text-white font-black shadow-lg shrink-0">
                 {userName?.charAt(0) || "U"}
               </div>
               <div className="min-w-0 flex-1">
@@ -99,17 +100,19 @@ export function DashboardLayout({ children, userName, role }: DashboardLayoutPro
       </aside>
 
       {/* Main Content */}
-      <main className="mr-72 min-w-0 flex-1 p-8 lg:p-12">
+      <main className="mr-72 min-w-0 flex-1 p-8 lg:p-12 text-right">
         <header className="mb-10 flex items-end justify-between border-b border-slate-200 pb-6 dark:border-slate-800">
           <div>
             <div className="mb-1 text-sm font-bold text-primary dark:text-emerald-400">مرحباً بك مجدداً</div>
-            <h1 className="text-3xl font-black text-secondary dark:text-white">نظرة عامة على الأصول</h1>
+            <h1 className="text-3xl font-black text-secondary dark:text-white">
+              {navItems.find(i => i.id === activeTab)?.label || "لوحة التحكم"}
+            </h1>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:block text-left">
+            <div className="hidden sm:block">
               <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">التاريخ الحالي</div>
-              <div className="text-sm font-bold text-secondary dark:text-white">
+              <div className="text-sm font-bold text-secondary dark:text-white tabular-nums">
                 {new Intl.DateTimeFormat('ar-SA', { dateStyle: 'full' }).format(new Date())}
               </div>
             </div>

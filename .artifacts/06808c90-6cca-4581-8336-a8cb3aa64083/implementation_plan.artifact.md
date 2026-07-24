@@ -1,51 +1,35 @@
-# Implementation Plan - Institutional Redesign (HQ Jubail Style)
+# Implementation Plan - Interaction Fixes (Sidebar & Dropdowns)
 
-This plan will transform the platform from a "Glassmorphism" look to a professional, institutional design inspired by the official **HQ Jubail** website. We will shift towards a Deep Green and Gold palette with a clean, grid-based layout.
+This plan fixes the two issues reported by the user: the unresponsive Sidebar menus and the broken "Select Facility" dropdown.
 
-## User Review Required
+## Problem Analysis
 
-> [!IMPORTANT]
-> This change will replace the current semi-transparent "Glass" effect with solid, high-contrast institutional colors (Deep Green, Gold, and White) to match the HQ Jubail identity.
+1. **Sidebar Navigation**: The sidebar links point to `/dashboard` but don't update the internal tab state (Stats/Requests/Users) of the `AdminView`.
+2. **Facility Dropdown**: The dropdown in the "New Request" form is failing to show items or react to clicks, likely due to a Z-index conflict or an issue with the facility fetching logic after the schema reset.
 
 ## Proposed Changes
 
-### 1. Visual Identity & Theme
+### 1. Unified State Management (Sidebar)
 
-#### [MODIFY] [styles.css](file:///C:/Projects/liquid-asset-manager-main/src/styles.css)
-- Update CSS variables to use:
-    - **Primary**: Deep Forest Green (`#005a34`)
-    - **Secondary**: Light Institutional Grey (`#f4f7f5`)
-    - **Accent**: Warm Gold/Bronze (`#c5a059`)
-    - **Text**: Dark Charcoal for readability.
-- Replace `glass-card` and `glass-panel` utilities with `inst-card` and `inst-panel` (clean white backgrounds, subtle shadows, crisp borders).
+#### [MODIFY] [DashboardLayout.tsx](file:///C:/Projects/liquid-asset-manager-main/src/components/layouts/DashboardLayout.tsx)
+- Add `activeTab` and `onTabChange` props.
+- Update nav items to call `onTabChange` instead of just being dead links.
 
-### 2. Core Layout Structure
+#### [MODIFY] [dashboard.tsx](file:///C:/Projects/liquid-asset-manager-main/src/routes/_authenticated/dashboard.tsx)
+- Manage the `activeTab` state here and pass it down to `DashboardLayout` and `AdminView`.
 
-#### [NEW] [DashboardLayout.tsx](file:///C:/Projects/liquid-asset-manager-main/src/components/layouts/DashboardLayout.tsx)
-- Create a modern Sidebar-based layout.
-- **Sidebar**: Fixed on the right (RTL), Deep Green background, containing navigation links (Overview, Requests, Staff, Reports).
-- **Header**: Integrated into the content area, showing the page title and basic breadcrumbs.
-
-### 3. Dashboard Components Overhaul
+### 2. UI & Logic Fixes (Dropdowns)
 
 #### [MODIFY] [AdminView.tsx](file:///C:/Projects/liquid-asset-manager-main/src/features/dashboards/AdminView.tsx)
-- Re-style the stat cards using the new institutional grid system.
-- Replace the tab switcher with the Sidebar navigation.
-- Implement **Recharts** with the new Green/Gold color scheme for budget visualization.
-- Redesign the maintenance request list into a clean, professional Data Table.
+- **NewRequestForm Dropdown**: Fix the `select` styling and ensure the `facilities` query is executing correctly.
+- Remove redundant tab navigation from `AdminView` since it's now in the Sidebar.
 
-#### [MODIFY] [AppHeader.tsx](file:///C:/Projects/liquid-asset-manager-main/src/components/AppHeader.tsx)
-- Update the logo and header styling to match the sidebar-centric approach.
-
-### 4. Navigation & Routes
-
-#### [MODIFY] [_authenticated/dashboard.tsx](file:///C:/Projects/liquid-asset-manager-main/src/routes/_authenticated/dashboard.tsx)
-- Wrap the dashboard content with the new `DashboardLayout`.
+#### [MODIFY] [styles.css](file:///C:/Projects/liquid-asset-manager-main/src/styles.css)
+- Refine the `glass-input` (select) styling to ensure proper visibility of options and remove any overlapping backdrop-blur that might be intercepting clicks.
 
 ## Verification Plan
 
 ### Manual Verification
-1. Compare the color palette and icons against `hqjubail.org.sa`.
-2. Test the responsive Sidebar on mobile (collapsible drawer).
-3. Verify that all functional buttons (Add Request, Delete User) are clearly visible and styled with the new Green/Gold theme.
-4. Check Dark Mode support with the new color tokens.
+1. Click on "بلاغات الصيانة" in the sidebar and verify the view changes.
+2. Click on "إدارة الموظفين" and verify it switches.
+3. Open a "New Request" form, click the facility dropdown, and verify that buildings' facilities are listed and selectable.

@@ -1,5 +1,5 @@
-- [ ] Update Visual Identity in `styles.css` (Forest Green & Gold)
-- [ ] Create `DashboardLayout.tsx` with Sidebar navigation
-- [ ] Overhaul `AdminView.tsx` with Institutional Grid and Charts
-- [ ] Redesign `NewRequestForm` to match the new theme
-- [ ] Final visual polish and verification
+- [ ] Lift `activeTab` state to `dashboard.tsx`
+- [ ] Connect Sidebar in `DashboardLayout.tsx` to the state
+- [ ] Refactor `AdminView.tsx` to use the lifted state and fix dropdowns
+- [ ] Tweak CSS for better element interaction
+- [ ] Push changes and verify
